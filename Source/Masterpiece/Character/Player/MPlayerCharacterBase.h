@@ -17,6 +17,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	UFUNCTION( BlueprintCallable, Category = "Damage")
+	UFUNCTION( BlueprintCallable, Category = "Masterpiece|Damage")
 	virtual void ApplyDamage(float Damage) override;
 };
