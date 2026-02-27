@@ -21,6 +21,5 @@ class MASTERPIECE_API IMInteractable
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Interactable")
 	virtual void Interact() = 0;
 };

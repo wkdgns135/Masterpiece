@@ -5,7 +5,6 @@
 
 AMNpcCharacterBase::AMNpcCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AMNpcCharacterBase::BeginPlay()

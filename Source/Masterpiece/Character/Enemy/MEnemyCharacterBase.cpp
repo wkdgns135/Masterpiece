@@ -5,11 +5,14 @@
 
 AMEnemyCharacterBase::AMEnemyCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
 }
 
 void AMEnemyCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AMEnemyCharacterBase::ApplyDamage(float Damage)
+{
 }

@@ -6,7 +6,7 @@
 
 AMCharacterBase::AMCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void AMCharacterBase::BeginPlay()
@@ -14,14 +14,3 @@ void AMCharacterBase::BeginPlay()
 	Super::BeginPlay();
 	
 }
-
-void AMCharacterBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-void AMCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
-

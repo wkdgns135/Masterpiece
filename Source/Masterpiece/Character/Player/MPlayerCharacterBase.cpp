@@ -6,11 +6,14 @@
 
 AMPlayerCharacterBase::AMPlayerCharacterBase()
 {
-	PrimaryActorTick.bCanEverTick = false;
 }
 
 void AMPlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void AMPlayerCharacterBase::ApplyDamage(float Damage)
+{
 }

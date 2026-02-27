@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "MDamageable.generated.h"
+#include "MPoolable.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE()
-class UMDamageable : public UInterface
+class UMPoolable : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,10 +16,11 @@ class UMDamageable : public UInterface
 /**
  * 
  */
-class MASTERPIECE_API IMDamageable
+class MASTERPIECE_API IMPoolable
 {
 	GENERATED_BODY()
 
 public:
-	virtual void ApplyDamage(float Damage) = 0;
+	virtual void Activate() = 0;
+	virtual void Deactivate() = 0;
 };
