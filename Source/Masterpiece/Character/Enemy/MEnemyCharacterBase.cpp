@@ -13,6 +13,14 @@ void AMEnemyCharacterBase::BeginPlay()
 	
 }
 
-void AMEnemyCharacterBase::ApplyDamage(float Damage)
+void AMEnemyCharacterBase::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
+{
+}
+
+void AMEnemyCharacterBase::HandleDeath()
+{
+}
+
+void AMEnemyCharacterBase::ApplyHealing(float Healing, AActor* Healer)
 {
 }

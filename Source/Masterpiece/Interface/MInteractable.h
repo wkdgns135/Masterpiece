@@ -7,7 +7,7 @@
 #include "MInteractable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE()
+UINTERFACE(MinimalAPI, NotBlueprintable)
 class UMInteractable : public UInterface
 {
 	GENERATED_BODY()
@@ -21,5 +21,6 @@ class MASTERPIECE_API IMInteractable
 	GENERATED_BODY()
 
 public:
-	virtual void Interact() = 0;
+	UFUNCTION(BlueprintCallable, Category="Interactable")
+	virtual void Interaction(AActor* Interactor) = 0;
 };

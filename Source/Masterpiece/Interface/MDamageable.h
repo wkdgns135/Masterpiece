@@ -7,7 +7,7 @@
 #include "MDamageable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE()
+UINTERFACE(MinimalAPI, NotBlueprintable)
 class UMDamageable : public UInterface
 {
 	GENERATED_BODY()
@@ -21,5 +21,15 @@ class MASTERPIECE_API IMDamageable
 	GENERATED_BODY()
 
 public:
-	virtual void ApplyDamage(float Damage) = 0;
+	/** Handles damage and knockback events */
+	UFUNCTION(BlueprintCallable, Category="Damageable")
+	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) = 0;
+
+	/** Handles death events */
+	UFUNCTION(BlueprintCallable, Category="Damageable")
+	virtual void HandleDeath() = 0;
+
+	/** Handles healing events */
+	UFUNCTION(BlueprintCallable, Category="Damageable")
+	virtual void ApplyHealing(float Healing, AActor* Healer) = 0;
 };

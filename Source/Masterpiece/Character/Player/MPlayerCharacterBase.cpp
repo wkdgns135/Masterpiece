@@ -14,6 +14,14 @@ void AMPlayerCharacterBase::BeginPlay()
 	
 }
 
-void AMPlayerCharacterBase::ApplyDamage(float Damage)
+void AMPlayerCharacterBase::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
+{
+}
+
+void AMPlayerCharacterBase::HandleDeath()
+{
+}
+
+void AMPlayerCharacterBase::ApplyHealing(float Healing, AActor* Healer)
 {
 }

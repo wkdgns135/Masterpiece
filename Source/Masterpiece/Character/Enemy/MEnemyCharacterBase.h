@@ -18,6 +18,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	UFUNCTION(BlueprintCallable, Category = "Masterpiece|Damage")
-	virtual void ApplyDamage(float Damage) override;
+	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
+	virtual void HandleDeath() override;
+	virtual void ApplyHealing(float Healing, AActor* Healer) override;
 };
