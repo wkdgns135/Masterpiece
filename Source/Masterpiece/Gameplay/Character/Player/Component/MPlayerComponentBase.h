@@ -17,13 +17,18 @@ class MASTERPIECE_API UMPlayerComponentBase : public USceneComponent
 public:
 	UMPlayerComponentBase();
 	
-	UFUNCTION(BlueprintCallable, Category="Player")
-	FORCEINLINE AMPlayerCharacterBase* GetPlayerCharacter(){return PlayerCharacter;};
-	
 protected:
 	virtual void BeginPlay() override;
 	
 private:
 	UPROPERTY()
-	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
+	TObjectPtr<AMPlayerCharacterBase> CachedPlayerCharacter;
+	
+public:
+	UFUNCTION(BlueprintCallable, Category="Player")
+	FORCEINLINE AMPlayerCharacterBase* GetPlayerCharacter()
+	{
+		check(CachedPlayerCharacter);
+		return CachedPlayerCharacter;
+	}
 };

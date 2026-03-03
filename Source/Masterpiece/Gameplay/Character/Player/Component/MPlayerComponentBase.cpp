@@ -17,6 +17,6 @@ void UMPlayerComponentBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
-	check(PlayerCharacter);
+	CachedPlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
+	check(CachedPlayerCharacter);
 }

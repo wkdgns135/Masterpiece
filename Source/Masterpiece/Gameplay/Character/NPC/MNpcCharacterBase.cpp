@@ -13,3 +13,7 @@ void AMNpcCharacterBase::BeginPlay()
 	
 }
 
+void AMNpcCharacterBase::Interaction(AActor* Interactor)
+{
+}
+

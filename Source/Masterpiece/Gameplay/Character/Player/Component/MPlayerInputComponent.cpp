@@ -4,7 +4,7 @@
 #include "MPlayerInputComponent.h"
 
 #include "EnhancedInputComponent.h"
-#include "Gameplay/Character/Player/Interface/MAttacker.h"
+#include "Gameplay/Character/Interface/MAttacker.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
 
@@ -59,46 +59,30 @@ void UMPlayerInputComponent::BindInputActions(UEnhancedInputComponent* EnhancedI
 
 void UMPlayerInputComponent::Jump(const FInputActionValue& Value)
 {
-	if (AMPlayerCharacterBase* Character = GetPlayerCharacter())
-	{
-		if (UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement())
-		{
-			MovementComponent->Jump(Value);
-		}
-	}
+	const AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
+	UMPlayerMovementComponent* MovementComponent = PlayerCharacter->GetPlayerMovement();
+	MovementComponent->Jump(Value);
 }
 
 void UMPlayerInputComponent::StopJump(const FInputActionValue& Value)
 {
-	if (AMPlayerCharacterBase* Character = GetPlayerCharacter())
-	{
-		if (UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement())
-		{
-			MovementComponent->StopJump(Value);
-		}
-	}
+	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
+	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
+	MovementComponent->StopJump(Value);
 }
 
 void UMPlayerInputComponent::Move(const FInputActionValue& Value)
 {
-	if (AMPlayerCharacterBase* Character = GetPlayerCharacter())
-	{
-		if (UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement())
-		{
-			MovementComponent->Move(Value);
-		}
-	}
+	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
+	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
+	MovementComponent->Move(Value);
 }
 
 void UMPlayerInputComponent::Look(const FInputActionValue& Value)
 {
-	if (AMPlayerCharacterBase* Character = GetPlayerCharacter())
-	{
-		if (UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement())
-		{
-			MovementComponent->Look(Value);
-		}
-	}
+	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
+	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
+	MovementComponent->Look(Value);
 }
 
 void UMPlayerInputComponent::ComboAttackPressed(const FInputActionValue& Value)

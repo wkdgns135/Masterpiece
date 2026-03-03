@@ -20,12 +20,9 @@ void UMPlayerCameraComponent::BeginPlay()
 
 void UMPlayerCameraComponent::InitializeCameraComponents()
 {
-	SpringArm = nullptr;
-	Camera = nullptr;
-	
-	const AMPlayerCharacterBase* Player = GetPlayerCharacter();
-	SpringArm = Player->GetSpringArm();
-	Camera = Player->GetFollowCamera();
+	const AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
+	SpringArm = PlayerCharacter->GetSpringArm();
+	Camera = PlayerCharacter->GetFollowCamera();
 
 	check(SpringArm);
 	check(Camera);

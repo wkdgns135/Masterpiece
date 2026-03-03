@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Gameplay/Character/MCharacterBase.h"
-#include "Gameplay/Character/Player/Interface/MAttacker.h"
+#include "Gameplay/Character/Interface/MAttacker.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "MPlayerCharacterBase.generated.h"
 
@@ -55,8 +55,19 @@ protected:
 	TObjectPtr<UCameraComponent> FollowCamera;
 
 public:
-	FORCEINLINE USpringArmComponent* GetSpringArm() const { return SpringArm; }
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	FORCEINLINE UMPlayerMovementComponent* GetPlayerMovement() const { return PlayerMovement; }
-	
+	FORCEINLINE USpringArmComponent* GetSpringArm() const
+	{
+		check(SpringArm);
+		return SpringArm;
+	}
+	FORCEINLINE UCameraComponent* GetFollowCamera() const
+	{
+		check(FollowCamera);
+		return FollowCamera;
+	}
+	FORCEINLINE UMPlayerMovementComponent* GetPlayerMovement() const
+	{
+		check(PlayerMovement);
+		return PlayerMovement;
+	}
 };

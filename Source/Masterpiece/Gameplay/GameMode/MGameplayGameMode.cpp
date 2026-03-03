@@ -3,9 +3,12 @@
 
 #include "MGameplayGameMode.h"
 
+#include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 
 AMGameplayGameMode::AMGameplayGameMode()
 {
 	PlayerControllerClass = AMGameplayPlayerController::StaticClass();
+	DefaultPawnClass = AMPlayerCharacterBase::StaticClass();
+	
 }
