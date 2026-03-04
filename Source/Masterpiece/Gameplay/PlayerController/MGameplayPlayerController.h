@@ -14,6 +14,12 @@ UCLASS()
 class MASTERPIECE_API AMGameplayPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	AMGameplayPlayerController();
+
+	UFUNCTION(BlueprintCallable, Category="Input")
+	bool TraceCursorToWorld(FHitResult& OutHitResult) const;
 	
 protected:
 	virtual void BeginPlay() override;

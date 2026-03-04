@@ -1,107 +1,144 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MPlayerInputComponent.h"
 
 #include "EnhancedInputComponent.h"
-#include "Gameplay/Character/Interface/MAttacker.h"
+#include "Gameplay/Character/Interface/MPlayerCommand.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
+#include "Gameplay/Character/Player/Component/MPlayerCameraComponent.h"
 #include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
+#include "Gameplay/Character/Player/Input/MPlayerInputConfig.h"
 
 UMPlayerInputComponent::UMPlayerInputComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
 void UMPlayerInputComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void UMPlayerInputComponent::BindInputActions(UEnhancedInputComponent* EnhancedInputComponent)
 {
 	check(EnhancedInputComponent);
 
-	if (JumpAction)
+	if (!InputConfig)
 	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ThisClass::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ThisClass::StopJump);
+		return;
 	}
 
-	if (MoveAction)
+	if (InputConfig->MoveCommandAction)
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+		EnhancedInputComponent->BindAction(InputConfig->MoveCommandAction, ETriggerEvent::Triggered, this, &ThisClass::HandleMoveCommandTriggered);
 	}
 
-	if (LookAction)
+	if (InputConfig->CursorAimAction)
 	{
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+		EnhancedInputComponent->BindAction(InputConfig->CursorAimAction, ETriggerEvent::Triggered, this, &ThisClass::HandleCursorAimTriggered);
 	}
 
-	if (MouseLookAction)
+	if (InputConfig->PrimaryAttackAction)
 	{
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
+		EnhancedInputComponent->BindAction(InputConfig->PrimaryAttackAction, ETriggerEvent::Started, this, &ThisClass::HandlePrimaryAttackTriggered);
 	}
 
-	if (ComboAttackAction)
+	if (InputConfig->ZoomAction)
 	{
-		EnhancedInputComponent->BindAction(ComboAttackAction, ETriggerEvent::Started, this, &ThisClass::ComboAttackPressed);
+		EnhancedInputComponent->BindAction(InputConfig->ZoomAction, ETriggerEvent::Triggered, this, &ThisClass::HandleZoomTriggered);
 	}
 
-	if (ChargedAttackAction)
+	if (InputConfig->InteractionAction)
 	{
-		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Started, this, &ThisClass::ChargedAttackStarted);
-		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Completed, this, &ThisClass::ChargedAttackReleased);
+		EnhancedInputComponent->BindAction(InputConfig->InteractionAction, ETriggerEvent::Started, this, &ThisClass::HandleInteractionTriggered);
+	}
+
+	if (InputConfig->DodgeAction)
+	{
+		EnhancedInputComponent->BindAction(InputConfig->DodgeAction, ETriggerEvent::Started, this, &ThisClass::HandleDodgeTriggered);
+	}
+
+	if (InputConfig->SkillSlotAction)
+	{
+		EnhancedInputComponent->BindAction(InputConfig->SkillSlotAction, ETriggerEvent::Started, this, &ThisClass::HandleSkillSlotTriggered);
+	}
+
+	if (InputConfig->QuickSlotAction)
+	{
+		EnhancedInputComponent->BindAction(InputConfig->QuickSlotAction, ETriggerEvent::Started, this, &ThisClass::HandleQuickSlotTriggered);
 	}
 }
 
-void UMPlayerInputComponent::Jump(const FInputActionValue& Value)
+void UMPlayerInputComponent::HandleMoveCommandTriggered(const FInputActionValue& Value)
 {
-	const AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	UMPlayerMovementComponent* MovementComponent = PlayerCharacter->GetPlayerMovement();
-	MovementComponent->Jump(Value);
-}
+	AMPlayerCharacterBase* Character = GetPlayerCharacter();
+	Character->GetPlayerMovement()->HandleMoveCommand(Value);
 
-void UMPlayerInputComponent::StopJump(const FInputActionValue& Value)
-{
-	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
-	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
-	MovementComponent->StopJump(Value);
-}
-
-void UMPlayerInputComponent::Move(const FInputActionValue& Value)
-{
-	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
-	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
-	MovementComponent->Move(Value);
-}
-
-void UMPlayerInputComponent::Look(const FInputActionValue& Value)
-{
-	const AMPlayerCharacterBase* Character = GetPlayerCharacter();
-	UMPlayerMovementComponent* MovementComponent = Character->GetPlayerMovement();
-	MovementComponent->Look(Value);
-}
-
-void UMPlayerInputComponent::ComboAttackPressed(const FInputActionValue& Value)
-{
-	if (IMAttacker* Attacker = Cast<IMAttacker>(GetPlayerCharacter()))
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(Character))
 	{
-		Attacker->CheckCombo();
+		PlayerCommand->TriggerMoveCommand();
 	}
 }
 
-void UMPlayerInputComponent::ChargedAttackStarted(const FInputActionValue& Value)
+void UMPlayerInputComponent::HandleCursorAimTriggered(const FInputActionValue& Value)
 {
-	if (IMAttacker* Attacker = Cast<IMAttacker>(GetPlayerCharacter()))
+	GetPlayerCharacter()->GetPlayerMovement()->HandleCursorAim(Value);
+}
+
+void UMPlayerInputComponent::HandlePrimaryAttackTriggered(const FInputActionValue& Value)
+{
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
 	{
-		Attacker->CheckChargedAttack();
+		PlayerCommand->TriggerPrimaryAttack();
 	}
 }
 
-void UMPlayerInputComponent::ChargedAttackReleased(const FInputActionValue& Value)
+void UMPlayerInputComponent::HandleZoomTriggered(const FInputActionValue& Value)
 {
+	GetPlayerCharacter()->GetPlayerCamera()->HandleZoomInput(Value.Get<float>());
 }
 
+void UMPlayerInputComponent::HandleInteractionTriggered(const FInputActionValue& Value)
+{
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
+	{
+		PlayerCommand->TriggerInteraction();
+	}
+}
+
+void UMPlayerInputComponent::HandleDodgeTriggered(const FInputActionValue& Value)
+{
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
+	{
+		PlayerCommand->TriggerDodge();
+	}
+}
+
+void UMPlayerInputComponent::HandleSkillSlotTriggered(const FInputActionValue& Value)
+{
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
+	{
+		PlayerCommand->TriggerSkill(ToSkillSlot(Value.Get<float>()));
+	}
+}
+
+void UMPlayerInputComponent::HandleQuickSlotTriggered(const FInputActionValue& Value)
+{
+	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
+	{
+		PlayerCommand->TriggerQuickSlot(ToQuickSlot(Value.Get<float>()));
+	}
+}
+
+EMSkillSlot UMPlayerInputComponent::ToSkillSlot(const float InputValue)
+{
+	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue), 0, static_cast<int32>(EMSkillSlot::MAX) - 1);
+	return static_cast<EMSkillSlot>(SlotIndex);
+}
+
+EMQuickSlot UMPlayerInputComponent::ToQuickSlot(const float InputValue)
+{
+	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue), 0, static_cast<int32>(EMQuickSlot::MAX) - 1);
+	return static_cast<EMQuickSlot>(SlotIndex);
+}

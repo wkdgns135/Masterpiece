@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MPlayerCameraComponent.h"
@@ -11,10 +11,21 @@ UMPlayerCameraComponent::UMPlayerCameraComponent()
 {
 }
 
+void UMPlayerCameraComponent::HandleZoomInput(const float ZoomDelta)
+{
+	if (!SpringArm || FMath::IsNearlyZero(ZoomDelta))
+	{
+		return;
+	}
+
+	const float TargetArmLength = SpringArm->TargetArmLength + (ZoomDelta * ZoomStep);
+	SpringArm->TargetArmLength = FMath::Clamp(TargetArmLength, MinZoomLength, MaxZoomLength);
+}
+
 void UMPlayerCameraComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	InitializeCameraComponents();
 }
 

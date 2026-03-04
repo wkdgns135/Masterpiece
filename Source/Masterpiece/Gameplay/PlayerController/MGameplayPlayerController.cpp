@@ -5,9 +5,25 @@
 
 #include "EnhancedInputSubsystems.h"
 
+AMGameplayPlayerController::AMGameplayPlayerController()
+{
+	bShowMouseCursor = true;
+	bEnableClickEvents = true;
+	bEnableMouseOverEvents = true;
+}
+
 void AMGameplayPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FInputModeGameAndUI InputMode;
+	InputMode.SetHideCursorDuringCapture(false);
+	SetInputMode(InputMode);
+}
+
+bool AMGameplayPlayerController::TraceCursorToWorld(FHitResult& OutHitResult) const
+{
+	return GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult);
 }
 
 void AMGameplayPlayerController::SetupInputComponent()
@@ -22,7 +38,10 @@ void AMGameplayPlayerController::SetupInputComponent()
 		{
 			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
 			{
-				Subsystem->AddMappingContext(CurrentContext, 0);
+				if (CurrentContext)
+				{
+					Subsystem->AddMappingContext(CurrentContext, 0);
+				}
 			}
 		}
 	}

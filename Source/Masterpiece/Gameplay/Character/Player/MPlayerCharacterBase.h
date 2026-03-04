@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Core/Types/MStatTypes.h"
 #include "Gameplay/Character/MCharacterBase.h"
 #include "Gameplay/Character/Interface/MAttacker.h"
+#include "Gameplay/Character/Interface/MPlayerCommand.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "MPlayerCharacterBase.generated.h"
 
@@ -15,7 +17,7 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS()
-class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker
+class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker, public IMPlayerCommand
 {
 	GENERATED_BODY()
 
@@ -33,8 +35,14 @@ protected:
 	
 	// MAttacker interface
 	virtual void DoAttackTrace(FName DamageSourceBone) override;
-	virtual void CheckChargedAttack() override;
-	virtual void CheckCombo() override;
+
+	// MPlayerCommand interface
+	virtual void TriggerPrimaryAttack() override;
+	virtual void TriggerMoveCommand() override;
+	virtual void TriggerInteraction() override;
+	virtual void TriggerDodge() override;
+	virtual void TriggerSkill(EMSkillSlot SkillSlot) override;
+	virtual void TriggerQuickSlot(EMQuickSlot QuickSlot) override;
 	
 protected:
 	/** 플레이어 전용 컴포넌트 */
@@ -54,6 +62,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Input")
+	EMSkillSlot LastTriggeredSkillSlot = EMSkillSlot::SkillQ;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Input")
+	EMQuickSlot LastTriggeredQuickSlot = EMQuickSlot::Slot1;
+	
 public:
 	FORCEINLINE USpringArmComponent* GetSpringArm() const
 	{
@@ -69,5 +83,10 @@ public:
 	{
 		check(PlayerMovement);
 		return PlayerMovement;
+	}
+	FORCEINLINE UMPlayerCameraComponent* GetPlayerCamera() const
+	{
+		check(PlayerCamera);
+		return PlayerCamera;
 	}
 };

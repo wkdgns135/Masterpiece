@@ -8,6 +8,7 @@
 #include "Component/MPlayerCameraComponent.h"
 #include "Component/MPlayerInputComponent.h"
 #include "Component/MPlayerMovementComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
@@ -25,14 +26,23 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	
-	SpringArm->TargetArmLength = 100.0f;
-	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->TargetArmLength = 1200.0f;
+	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->bEnableCameraLag = true;
-	SpringArm->bEnableCameraRotationLag = true;
+	SpringArm->bEnableCameraRotationLag = false;
+	SpringArm->bInheritPitch = false;
+	SpringArm->bInheritYaw = false;
+	SpringArm->bInheritRoll = false;
+	SpringArm->bDoCollisionTest = false;
+	SpringArm->SetRelativeRotation(FRotator(-60.0f, 0.0f, 0.0f));
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCamera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+
+	bUseControllerRotationYaw = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 }
 
 void AMPlayerCharacterBase::BeginPlay()
@@ -68,10 +78,37 @@ void AMPlayerCharacterBase::DoAttackTrace(FName DamageSourceBone)
 {
 }
 
-void AMPlayerCharacterBase::CheckChargedAttack()
+void AMPlayerCharacterBase::TriggerPrimaryAttack()
+{
+	if (PlayerMovement)
+	{
+		PlayerMovement->FaceCursorDirection();
+	}
+}
+
+void AMPlayerCharacterBase::TriggerMoveCommand()
 {
 }
 
-void AMPlayerCharacterBase::CheckCombo()
+void AMPlayerCharacterBase::TriggerInteraction()
 {
+}
+
+void AMPlayerCharacterBase::TriggerDodge()
+{
+}
+
+void AMPlayerCharacterBase::TriggerSkill(const EMSkillSlot SkillSlot)
+{
+	LastTriggeredSkillSlot = SkillSlot;
+
+	if (PlayerMovement)
+	{
+		PlayerMovement->FaceCursorDirection();
+	}
+}
+
+void AMPlayerCharacterBase::TriggerQuickSlot(const EMQuickSlot QuickSlot)
+{
+	LastTriggeredQuickSlot = QuickSlot;
 }

@@ -1,61 +1,74 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MPlayerMovementComponent.h"
 
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "InputActionValue.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "Gameplay/PlayerController/MGameplayPlayerController.h"
 
 UMPlayerMovementComponent::UMPlayerMovementComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
-
+	PrimaryComponentTick.bCanEverTick = false;
 }
 
 void UMPlayerMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
-void UMPlayerMovementComponent::Jump(const FInputActionValue& Value)
+void UMPlayerMovementComponent::HandleMoveCommand(const FInputActionValue& Value)
 {
-	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	PlayerCharacter->Jump();
+	IssueMoveToCursorCommand();
 }
 
-void UMPlayerMovementComponent::StopJump(const FInputActionValue& Value)
+void UMPlayerMovementComponent::HandleCursorAim(const FInputActionValue& Value)
 {
-	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	PlayerCharacter->StopJumping();
+	FaceCursorDirection();
 }
 
-void UMPlayerMovementComponent::Move(const FInputActionValue& Value)
+void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 {
 	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	
-	const FVector2D MovementVector = Value.Get<FVector2D>();
-	if (MovementVector.IsNearlyZero())
+	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
+	if (!PlayerController)
 	{
 		return;
 	}
 
-	const FRotator ControlRotation = PlayerCharacter->GetControlRotation();
-	const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+	FHitResult CursorHit;
+	if (!PlayerController->TraceCursorToWorld(CursorHit))
+	{
+		return;
+	}
 
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	FVector Destination = CursorHit.ImpactPoint;
+	Destination.Z = PlayerCharacter->GetActorLocation().Z;
 
-	PlayerCharacter->AddMovementInput(ForwardDirection, MovementVector.Y);
-	PlayerCharacter->AddMovementInput(RightDirection, MovementVector.X);
+	FaceCursorDirection();
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(PlayerController, Destination);
 }
 
-void UMPlayerMovementComponent::Look(const FInputActionValue& Value)
+void UMPlayerMovementComponent::FaceCursorDirection()
 {
 	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	
-	const FVector2D LookAxisVector = Value.Get<FVector2D>();
-	PlayerCharacter->AddControllerYawInput(LookAxisVector.X);
-	PlayerCharacter->AddControllerPitchInput(LookAxisVector.Y);
+	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	FHitResult CursorHit;
+	if (!PlayerController->TraceCursorToWorld(CursorHit))
+	{
+		return;
+	}
+
+	FVector Direction = CursorHit.ImpactPoint - PlayerCharacter->GetActorLocation();
+	Direction.Z = 0.0f;
+	if (!Direction.IsNearlyZero())
+	{
+		PlayerCharacter->SetActorRotation(Direction.Rotation());
+	}
 }

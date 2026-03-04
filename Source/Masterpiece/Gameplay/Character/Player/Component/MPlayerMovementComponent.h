@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -21,15 +21,14 @@ protected:
 
 public:
 	UFUNCTION()
-	void Jump(const FInputActionValue& Value);
+	void HandleMoveCommand(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void StopJump(const FInputActionValue& Value);
+	void HandleCursorAim(const FInputActionValue& Value);
 
 	UFUNCTION()
-	void Move(const FInputActionValue& Value);
+	void IssueMoveToCursorCommand();
 
 	UFUNCTION()
-	void Look(const FInputActionValue& Value);
-
+	void FaceCursorDirection();
 };
