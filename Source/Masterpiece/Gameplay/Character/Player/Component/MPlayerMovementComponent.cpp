@@ -4,7 +4,7 @@
 #include "MPlayerMovementComponent.h"
 
 #include "Blueprint/AIBlueprintHelperLibrary.h"
-#include "InputActionValue.h"
+#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 
@@ -16,6 +16,29 @@ UMPlayerMovementComponent::UMPlayerMovementComponent()
 void UMPlayerMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
+	check(PlayerCharacter);
+
+	UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent();
+	check(InputComponent);
+
+	MoveCommandDelegateHandle = InputComponent->OnMoveCommandTriggered().AddUObject(this, &ThisClass::HandleMoveCommand);
+	CursorAimDelegateHandle = InputComponent->OnCursorAimTriggered().AddUObject(this, &ThisClass::HandleCursorAim);
+}
+
+void UMPlayerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (PlayerCharacter)
+	{
+		if (UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent())
+		{
+			InputComponent->OnMoveCommandTriggered().Remove(MoveCommandDelegateHandle);
+			InputComponent->OnCursorAimTriggered().Remove(CursorAimDelegateHandle);
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UMPlayerMovementComponent::HandleMoveCommand(const FInputActionValue& Value)
@@ -30,7 +53,6 @@ void UMPlayerMovementComponent::HandleCursorAim(const FInputActionValue& Value)
 
 void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 {
-	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
 	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
 	if (!PlayerController)
 	{
@@ -52,7 +74,6 @@ void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 
 void UMPlayerMovementComponent::FaceCursorDirection()
 {
-	AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
 	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
 	if (!PlayerController)
 	{

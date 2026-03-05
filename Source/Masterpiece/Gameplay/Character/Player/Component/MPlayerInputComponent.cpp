@@ -4,10 +4,7 @@
 #include "MPlayerInputComponent.h"
 
 #include "EnhancedInputComponent.h"
-#include "Gameplay/Character/Interface/MPlayerCommand.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "Gameplay/Character/Player/Component/MPlayerCameraComponent.h"
-#include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
 #include "Gameplay/Character/Player/Input/MPlayerInputConfig.h"
 
 UMPlayerInputComponent::UMPlayerInputComponent()
@@ -18,6 +15,9 @@ UMPlayerInputComponent::UMPlayerInputComponent()
 void UMPlayerInputComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
+	check(PlayerCharacter);
 }
 
 void UMPlayerInputComponent::BindInputActions(UEnhancedInputComponent* EnhancedInputComponent)
@@ -72,69 +72,48 @@ void UMPlayerInputComponent::BindInputActions(UEnhancedInputComponent* EnhancedI
 
 void UMPlayerInputComponent::HandleMoveCommandTriggered(const FInputActionValue& Value)
 {
-	AMPlayerCharacterBase* Character = GetPlayerCharacter();
-	Character->GetPlayerMovement()->HandleMoveCommand(Value);
-
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(Character))
-	{
-		PlayerCommand->TriggerMoveCommand();
-	}
+	MoveCommandTriggered.Broadcast(Value);
 }
 
 void UMPlayerInputComponent::HandleCursorAimTriggered(const FInputActionValue& Value)
 {
-	GetPlayerCharacter()->GetPlayerMovement()->HandleCursorAim(Value);
+	CursorAimTriggered.Broadcast(Value);
 }
 
 void UMPlayerInputComponent::HandlePrimaryAttackTriggered(const FInputActionValue& Value)
 {
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
-	{
-		PlayerCommand->TriggerPrimaryAttack();
-	}
+	PrimaryAttackTriggered.Broadcast();
 }
 
 void UMPlayerInputComponent::HandleZoomTriggered(const FInputActionValue& Value)
 {
-	GetPlayerCharacter()->GetPlayerCamera()->HandleZoomInput(Value.Get<float>());
+	ZoomTriggered.Broadcast(Value.Get<float>());
 }
 
 void UMPlayerInputComponent::HandleInteractionTriggered(const FInputActionValue& Value)
 {
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
-	{
-		PlayerCommand->TriggerInteraction();
-	}
+	InteractionTriggered.Broadcast();
 }
 
 void UMPlayerInputComponent::HandleDodgeTriggered(const FInputActionValue& Value)
 {
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
-	{
-		PlayerCommand->TriggerDodge();
-	}
+	DodgeTriggered.Broadcast();
 }
 
 void UMPlayerInputComponent::HandleSkillSlotTriggered(const FInputActionValue& Value)
 {
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
-	{
-		PlayerCommand->TriggerSkill(ToSkillSlot(Value.Get<float>()));
-	}
+	SkillSlotTriggered.Broadcast(ToSkillType(Value.Get<float>()));
 }
 
 void UMPlayerInputComponent::HandleQuickSlotTriggered(const FInputActionValue& Value)
 {
-	if (IMPlayerCommand* PlayerCommand = Cast<IMPlayerCommand>(GetPlayerCharacter()))
-	{
-		PlayerCommand->TriggerQuickSlot(ToQuickSlot(Value.Get<float>()));
-	}
+	QuickSlotTriggered.Broadcast(ToQuickSlot(Value.Get<float>()));
 }
 
-EMSkillSlot UMPlayerInputComponent::ToSkillSlot(const float InputValue)
+EMPlayerSkillType UMPlayerInputComponent::ToSkillType(const float InputValue)
 {
-	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMSkillSlot::MAX) - 1);
-	return static_cast<EMSkillSlot>(SlotIndex);
+	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMPlayerSkillType::MAX) - 1);
+	return static_cast<EMPlayerSkillType>(SlotIndex);
 }
 
 EMQuickSlot UMPlayerInputComponent::ToQuickSlot(const float InputValue)

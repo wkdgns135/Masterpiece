@@ -5,6 +5,7 @@
 
 #include "Camera/CameraComponent.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
+#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 UMPlayerCameraComponent::UMPlayerCameraComponent()
@@ -26,14 +27,34 @@ void UMPlayerCameraComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
+	check(PlayerCharacter);
+
 	InitializeCameraComponents();
+
+	UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent();
+	check(InputComponent);
+
+	ZoomDelegateHandle = InputComponent->OnZoomTriggered().AddUObject(this, &ThisClass::HandleZoomInput);
+}
+
+void UMPlayerCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (PlayerCharacter)
+	{
+		if (UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent())
+		{
+			InputComponent->OnZoomTriggered().Remove(ZoomDelegateHandle);
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UMPlayerCameraComponent::InitializeCameraComponents()
 {
-	const AMPlayerCharacterBase* PlayerCharacter = GetPlayerCharacter();
-	SpringArm = PlayerCharacter->GetSpringArm();
-	Camera = PlayerCharacter->GetFollowCamera();
+	SpringArm = PlayerCharacter->GetSpringArmComponent();
+	Camera = PlayerCharacter->GetFollowCameraComponent();
 
 	check(SpringArm);
 	check(Camera);

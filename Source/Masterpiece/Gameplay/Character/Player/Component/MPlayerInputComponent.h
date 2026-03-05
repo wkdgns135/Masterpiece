@@ -3,27 +3,42 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Gameplay/Character/Interface/MPlayerCommand.h"
-#include "MPlayerComponentBase.h"
-#include "Components/ActorComponent.h"
+#include "InputActionValue.h"
+#include "Gameplay/Character/Skill/MPlayerSkillTypes.h"
+#include "Components/SceneComponent.h"
 #include "MPlayerInputComponent.generated.h"
 
-struct FInputActionValue;
 class UEnhancedInputComponent;
 class UMPlayerInputConfig;
+class AMPlayerCharacterBase;
+
+UENUM(BlueprintType)
+enum class EMQuickSlot : uint8
+{
+	Slot1,
+	Slot2,
+	Slot3,
+	Slot4,
+	MAX UMETA(Hidden)
+};
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMoveCommandTriggered, const FInputActionValue&);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCursorAimTriggered, const FInputActionValue&);
+DECLARE_MULTICAST_DELEGATE(FOnPrimaryAttackTriggered);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnZoomTriggered, float);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionTriggered);
+DECLARE_MULTICAST_DELEGATE(FOnDodgeTriggered);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillSlotTriggered, EMPlayerSkillType);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotTriggered, EMQuickSlot);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerInputComponent : public UMPlayerComponentBase
+class MASTERPIECE_API UMPlayerInputComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
 public:
 	UMPlayerInputComponent();
 
-protected:
-	virtual void BeginPlay() override;
-
-public:
 	void BindInputActions(UEnhancedInputComponent* EnhancedInputComponent);
 
 	UFUNCTION()
@@ -49,11 +64,68 @@ public:
 
 	UFUNCTION()
 	void HandleQuickSlotTriggered(const FInputActionValue& Value);
-
+	
+protected:
+	virtual void BeginPlay() override;
+	
+public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UMPlayerInputConfig> InputConfig;
-
+	
 private:
-	static EMSkillSlot ToSkillSlot(float InputValue);
+	UPROPERTY()
+	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
+
+	FOnMoveCommandTriggered MoveCommandTriggered;
+	FOnCursorAimTriggered CursorAimTriggered;
+	FOnPrimaryAttackTriggered PrimaryAttackTriggered;
+	FOnZoomTriggered ZoomTriggered;
+	FOnInteractionTriggered InteractionTriggered;
+	FOnDodgeTriggered DodgeTriggered;
+	FOnSkillSlotTriggered SkillSlotTriggered;
+	FOnQuickSlotTriggered QuickSlotTriggered;
+
+	static EMPlayerSkillType ToSkillType(float InputValue);
 	static EMQuickSlot ToQuickSlot(float InputValue);
+
+public:
+	FORCEINLINE FOnMoveCommandTriggered& OnMoveCommandTriggered()
+	{
+		return MoveCommandTriggered;
+	}
+
+	FORCEINLINE FOnCursorAimTriggered& OnCursorAimTriggered()
+	{
+		return CursorAimTriggered;
+	}
+
+	FORCEINLINE FOnPrimaryAttackTriggered& OnPrimaryAttackTriggered()
+	{
+		return PrimaryAttackTriggered;
+	}
+
+	FORCEINLINE FOnZoomTriggered& OnZoomTriggered()
+	{
+		return ZoomTriggered;
+	}
+
+	FORCEINLINE FOnInteractionTriggered& OnInteractionTriggered()
+	{
+		return InteractionTriggered;
+	}
+
+	FORCEINLINE FOnDodgeTriggered& OnDodgeTriggered()
+	{
+		return DodgeTriggered;
+	}
+
+	FORCEINLINE FOnSkillSlotTriggered& OnSkillSlotTriggered()
+	{
+		return SkillSlotTriggered;
+	}
+
+	FORCEINLINE FOnQuickSlotTriggered& OnQuickSlotTriggered()
+	{
+		return QuickSlotTriggered;
+	}
 };

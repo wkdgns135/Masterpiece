@@ -3,21 +3,20 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Core/Types/MStatTypes.h"
 #include "Gameplay/Character/MCharacterBase.h"
 #include "Gameplay/Character/Interface/MAttacker.h"
-#include "Gameplay/Character/Interface/MPlayerCommand.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "MPlayerCharacterBase.generated.h"
 
 class UMPlayerCameraComponent;
+class UMPlayerCombatComponent;
 class UMPlayerInputComponent;
 class UMPlayerMovementComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS(Abstract)
-class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker, public IMPlayerCommand
+class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker
 {
 	GENERATED_BODY()
 
@@ -25,8 +24,7 @@ public:
 	AMPlayerCharacterBase();
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	
 	// MDamageable interface
 	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
@@ -35,58 +33,57 @@ protected:
 	
 	// MAttacker interface
 	virtual void DoAttackTrace(FName DamageSourceBone) override;
-
-	// MPlayerCommand interface
-	virtual void TriggerPrimaryAttack() override;
-	virtual void TriggerMoveCommand() override;
-	virtual void TriggerInteraction() override;
-	virtual void TriggerDodge() override;
-	virtual void TriggerSkill(EMSkillSlot SkillSlot) override;
-	virtual void TriggerQuickSlot(EMQuickSlot QuickSlot) override;
 	
 protected:
 	/** 플레이어 전용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UMPlayerInputComponent> PlayerInput;
+	TObjectPtr<UMPlayerInputComponent> PlayerInputComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UMPlayerMovementComponent> PlayerMovement;
+	TObjectPtr<UMPlayerMovementComponent> PlayerMovementComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UMPlayerCameraComponent> PlayerCamera;
+	TObjectPtr<UMPlayerCameraComponent> PlayerCameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMPlayerCombatComponent> PlayerCombatComponent;
 
 	/** 공용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USpringArmComponent> SpringArm;
+	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UCameraComponent> FollowCamera;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Input")
-	EMSkillSlot LastTriggeredSkillSlot = EMSkillSlot::SkillQ;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Input")
-	EMQuickSlot LastTriggeredQuickSlot = EMQuickSlot::Slot1;
+	TObjectPtr<UCameraComponent> FollowCameraComponent;
 	
 public:
-	FORCEINLINE USpringArmComponent* GetSpringArm() const
+	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const
 	{
-		check(SpringArm);
-		return SpringArm;
+		check(SpringArmComponent);
+		return SpringArmComponent;
 	}
-	FORCEINLINE UCameraComponent* GetFollowCamera() const
+	FORCEINLINE UCameraComponent* GetFollowCameraComponent() const
 	{
-		check(FollowCamera);
-		return FollowCamera;
+		check(FollowCameraComponent);
+		return FollowCameraComponent;
 	}
-	FORCEINLINE UMPlayerMovementComponent* GetPlayerMovement() const
+	FORCEINLINE UMPlayerMovementComponent* GetPlayerMovementComponent() const
 	{
-		check(PlayerMovement);
-		return PlayerMovement;
+		check(PlayerMovementComponent);
+		return PlayerMovementComponent;
 	}
-	FORCEINLINE UMPlayerCameraComponent* GetPlayerCamera() const
+	FORCEINLINE UMPlayerCameraComponent* GetPlayerCameraComponent() const
 	{
-		check(PlayerCamera);
-		return PlayerCamera;
+		check(PlayerCameraComponent);
+		return PlayerCameraComponent;
+	}
+	FORCEINLINE UMPlayerInputComponent* GetPlayerInputComponent() const
+	{
+		check(PlayerInputComponent);
+		return PlayerInputComponent;
+	}
+	FORCEINLINE UMPlayerCombatComponent* GetPlayerCombatComponent() const
+	{
+		check(PlayerCombatComponent);
+		return PlayerCombatComponent;
 	}
 };

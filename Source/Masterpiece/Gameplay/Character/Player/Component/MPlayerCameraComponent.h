@@ -3,14 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MPlayerComponentBase.h"
+#include "Components/SceneComponent.h"
 #include "MPlayerCameraComponent.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
+class AMPlayerCharacterBase;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerCameraComponent : public UMPlayerComponentBase
+class MASTERPIECE_API UMPlayerCameraComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
@@ -22,11 +23,17 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	void InitializeCameraComponents();
 
 private:
+	UPROPERTY()
+	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
+
+	FDelegateHandle ZoomDelegateHandle;
+
 	UPROPERTY(EditAnywhere, Category="Camera")
 	float ZoomStep = 100.0f;
 

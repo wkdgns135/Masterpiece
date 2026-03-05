@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MPlayerComponentBase.h"
+#include "Components/SceneComponent.h"
 #include "MPlayerMovementComponent.generated.h"
 
 struct FInputActionValue;
+class AMPlayerCharacterBase;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerMovementComponent : public UMPlayerComponentBase
+class MASTERPIECE_API UMPlayerMovementComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
@@ -18,6 +19,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 	UFUNCTION()
@@ -31,4 +33,11 @@ public:
 
 	UFUNCTION()
 	void FaceCursorDirection();
+
+private:
+	UPROPERTY()
+	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
+
+	FDelegateHandle MoveCommandDelegateHandle;
+	FDelegateHandle CursorAimDelegateHandle;
 };
