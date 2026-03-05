@@ -7,7 +7,7 @@
 #include "Gameplay/Interface/MInteractable.h"
 #include "MNpcCharacterBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class MASTERPIECE_API AMNpcCharacterBase : public AMCharacterBase, public IMInteractable
 {
 	GENERATED_BODY()

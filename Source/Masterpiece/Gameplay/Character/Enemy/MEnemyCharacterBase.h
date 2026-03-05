@@ -7,7 +7,7 @@
 #include "Gameplay/Interface/MDamageable.h"
 #include "MEnemyCharacterBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class MASTERPIECE_API AMEnemyCharacterBase : public AMCharacterBase, public IMDamageable
 {
 	GENERATED_BODY()

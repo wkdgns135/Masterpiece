@@ -26,7 +26,7 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	
-	SpringArm->TargetArmLength = 1200.0f;
+	SpringArm->TargetArmLength = 700.0f;
 	SpringArm->bUsePawnControlRotation = false;
 	SpringArm->bEnableCameraLag = true;
 	SpringArm->bEnableCameraRotationLag = false;
@@ -43,6 +43,7 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
+	
 }
 
 void AMPlayerCharacterBase::BeginPlay()

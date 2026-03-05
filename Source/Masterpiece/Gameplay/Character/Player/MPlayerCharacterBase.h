@@ -16,7 +16,7 @@ class UMPlayerMovementComponent;
 class UCameraComponent;
 class USpringArmComponent;
 
-UCLASS()
+UCLASS(Abstract)
 class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker, public IMPlayerCommand
 {
 	GENERATED_BODY()

@@ -133,12 +133,12 @@ void UMPlayerInputComponent::HandleQuickSlotTriggered(const FInputActionValue& V
 
 EMSkillSlot UMPlayerInputComponent::ToSkillSlot(const float InputValue)
 {
-	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue), 0, static_cast<int32>(EMSkillSlot::MAX) - 1);
+	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMSkillSlot::MAX) - 1);
 	return static_cast<EMSkillSlot>(SlotIndex);
 }
 
 EMQuickSlot UMPlayerInputComponent::ToQuickSlot(const float InputValue)
 {
-	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue), 0, static_cast<int32>(EMQuickSlot::MAX) - 1);
+	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMQuickSlot::MAX) - 1);
 	return static_cast<EMQuickSlot>(SlotIndex);
 }

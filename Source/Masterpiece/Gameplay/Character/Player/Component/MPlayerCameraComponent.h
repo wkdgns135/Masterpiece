@@ -31,10 +31,10 @@ private:
 	float ZoomStep = 100.0f;
 
 	UPROPERTY(EditAnywhere, Category="Camera")
-	float MinZoomLength = 700.0f;
+	float MinZoomLength = 300.0f;
 
 	UPROPERTY(EditAnywhere, Category="Camera")
-	float MaxZoomLength = 1800.0f;
+	float MaxZoomLength = 1000.0f;
 
 	UPROPERTY()
 	TObjectPtr<USpringArmComponent> SpringArm;

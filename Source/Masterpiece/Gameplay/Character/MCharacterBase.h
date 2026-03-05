@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "MCharacterBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class MASTERPIECE_API AMCharacterBase : public ACharacter
 {
 	GENERATED_BODY()
