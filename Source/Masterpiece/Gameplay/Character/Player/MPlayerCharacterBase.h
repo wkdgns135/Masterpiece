@@ -3,11 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
+#include "Core/Types/MStatTypes.h"
 #include "Gameplay/Character/MCharacterBase.h"
 #include "Gameplay/Character/Interface/MAttacker.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "MPlayerCharacterBase.generated.h"
 
+class UAbilitySystemComponent;
+class UMAbilitySystemComponent;
+class UMAttributeSet;
+class UMGameplayAbility;
 class UMPlayerCameraComponent;
 class UMPlayerCombatComponent;
 class UMPlayerInputComponent;
@@ -16,14 +22,16 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS(Abstract)
-class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMDamageable, public IMAttacker
+class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IAbilitySystemInterface, public IMDamageable, public IMAttacker
 {
 	GENERATED_BODY()
 
 public:
 	AMPlayerCharacterBase();
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	
 	// MDamageable interface
@@ -48,12 +56,29 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMPlayerCombatComponent> PlayerCombatComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components|GAS", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components|GAS", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMAttributeSet> AttributeSet;
+
 	/** 공용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCameraComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="GAS|Abilities", meta = (AllowPrivateAccess = "true"))
+	TArray<TSubclassOf<UMGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="GAS|Attributes", meta = (AllowPrivateAccess = "true"))
+	FPlayerStat DefaultPlayerStat;
+
+private:
+	void InitializeAbilitySystem();
+	void InitializeDefaultAttributes();
+	void GrantStartupAbilities();
 	
 public:
 	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const
@@ -85,5 +110,10 @@ public:
 	{
 		check(PlayerCombatComponent);
 		return PlayerCombatComponent;
+	}
+	FORCEINLINE UMAttributeSet* GetAttributeSet() const
+	{
+		check(AttributeSet);
+		return AttributeSet;
 	}
 };

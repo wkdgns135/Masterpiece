@@ -3,6 +3,10 @@
 
 #include "MPlayerCombatComponent.h"
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "GameplayTagContainer.h"
+#include "Gameplay/AbilitySystem/MGameplayTags.h"
 #include "Gameplay/Character/Skill/MSkillBase.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
@@ -47,6 +51,11 @@ void UMPlayerCombatComponent::SetSkillStrategy(const EMPlayerSkillType SkillType
 
 void UMPlayerCombatComponent::ExecutePrimaryAttack()
 {
+	if (TryActivateAbilityByInputTag(MGameplayTags::Input_Ability_PrimaryAttack))
+	{
+		return;
+	}
+
 	if (!IsValid(PrimaryAttackStrategy))
 	{
 		return;
@@ -139,4 +148,28 @@ void UMPlayerCombatComponent::InitializeDefaultStrategies()
 	SetSkillStrategy(EMPlayerSkillType::SkillW, DefaultSkillWStrategyClass);
 	SetSkillStrategy(EMPlayerSkillType::SkillE, DefaultSkillEStrategyClass);
 	SetSkillStrategy(EMPlayerSkillType::SkillR, DefaultSkillRStrategyClass);
+}
+
+bool UMPlayerCombatComponent::TryActivateAbilityByInputTag(const FGameplayTag& InputTag) const
+{
+	if (!InputTag.IsValid() || !PlayerCharacter)
+	{
+		return false;
+	}
+
+	const IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(PlayerCharacter);
+	if (!AbilitySystemInterface)
+	{
+		return false;
+	}
+
+	UAbilitySystemComponent* AbilitySystemComponent = AbilitySystemInterface->GetAbilitySystemComponent();
+	if (!AbilitySystemComponent)
+	{
+		return false;
+	}
+
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(InputTag);
+	return AbilitySystemComponent->TryActivateAbilitiesByTag(TagContainer, true);
 }

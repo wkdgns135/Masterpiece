@@ -9,6 +9,7 @@
 
 class AMPlayerCharacterBase;
 class UMSkillBase;
+struct FGameplayTag;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerCombatComponent : public UMCombatComponent
@@ -41,6 +42,8 @@ public:
 	}
 	
 private:
+	bool TryActivateAbilityByInputTag(const FGameplayTag& InputTag) const;
+
 	void BindInputDelegates();
 	void UnbindInputDelegates();
 
