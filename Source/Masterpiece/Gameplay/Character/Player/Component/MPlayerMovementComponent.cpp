@@ -7,6 +7,7 @@
 #include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
+#include "TimerManager.h"
 
 UMPlayerMovementComponent::UMPlayerMovementComponent()
 {
@@ -29,6 +30,8 @@ void UMPlayerMovementComponent::BeginPlay()
 
 void UMPlayerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	StopRotationInterpolationTimer();
+
 	if (PlayerCharacter)
 	{
 		if (UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent())
@@ -90,6 +93,87 @@ void UMPlayerMovementComponent::FaceCursorDirection()
 	Direction.Z = 0.0f;
 	if (!Direction.IsNearlyZero())
 	{
-		PlayerCharacter->SetActorRotation(Direction.Rotation());
+		const FRotator NewDesiredRotation = Direction.Rotation();
+		const float DeltaYawAbs = FMath::Abs(FMath::FindDeltaAngleDegrees(PlayerCharacter->GetActorRotation().Yaw, NewDesiredRotation.Yaw));
+		if (DeltaYawAbs < RotationSettings.RotationStartThresholdDeg)
+		{
+			return;
+		}
+
+		DesiredRotation = NewDesiredRotation;
+		bHasDesiredRotation = true;
+		StartRotationInterpolationTimer();
 	}
+}
+
+void UMPlayerMovementComponent::StartRotationInterpolationTimer()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	if (!World->GetTimerManager().IsTimerActive(RotationTimerHandle))
+	{
+		LastRotationUpdateTimeSec = World->GetTimeSeconds();
+		World->GetTimerManager().SetTimer(
+			RotationTimerHandle,
+			this,
+			&ThisClass::UpdateRotationWithTimer,
+			RotationSettings.RotationUpdateIntervalSec,
+			true);
+	}
+}
+
+void UMPlayerMovementComponent::StopRotationInterpolationTimer()
+{
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(RotationTimerHandle);
+	}
+
+	bHasDesiredRotation = false;
+}
+
+void UMPlayerMovementComponent::UpdateRotationWithTimer()
+{
+	if (!PlayerCharacter || !bHasDesiredRotation)
+	{
+		StopRotationInterpolationTimer();
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		StopRotationInterpolationTimer();
+		return;
+	}
+
+	const float CurrentTimeSec = World->GetTimeSeconds();
+	const float DeltaTimeSec = FMath::Max(CurrentTimeSec - LastRotationUpdateTimeSec, KINDA_SMALL_NUMBER);
+	LastRotationUpdateTimeSec = CurrentTimeSec;
+
+	const float CurrentYaw = PlayerCharacter->GetActorRotation().Yaw;
+	const float TargetYaw = DesiredRotation.Yaw;
+	const float DeltaYawAbs = FMath::Abs(FMath::FindDeltaAngleDegrees(CurrentYaw, TargetYaw));
+
+	if (DeltaYawAbs <= RotationSettings.RotationCompleteThresholdDeg)
+	{
+		PlayerCharacter->SetActorRotation(DesiredRotation);
+		StopRotationInterpolationTimer();
+		return;
+	}
+
+	const float InterpolatedSpeed = FMath::GetMappedRangeValueClamped(
+		FVector2D(0.0f, 180.0f),
+		FVector2D(RotationSettings.MinRotationSpeedDegPerSec, RotationSettings.MaxRotationSpeedDegPerSec),
+		DeltaYawAbs);
+	const float MaxStep = InterpolatedSpeed * DeltaTimeSec;
+	const float NewYaw = FMath::FixedTurn(CurrentYaw, TargetYaw, MaxStep);
+
+	FRotator NewRotation = PlayerCharacter->GetActorRotation();
+	NewRotation.Yaw = NewYaw;
+	PlayerCharacter->SetActorRotation(NewRotation);
 }

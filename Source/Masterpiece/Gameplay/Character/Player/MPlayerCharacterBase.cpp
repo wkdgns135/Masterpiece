@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "MPlayerCharacterBase.h"
@@ -49,13 +49,14 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	SpringArmComponent->bInheritRoll = false;
 	SpringArmComponent->bDoCollisionTest = false;
 	SpringArmComponent->SetRelativeRotation(FRotator(-60.0f, 0.0f, 0.0f));
+	SpringArmComponent->SetAbsolute(true, true, true);
 
 	FollowCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
 	FollowCameraComponent->bUsePawnControlRotation = false;
 
 	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 720.0f, 0.0f);
 	
 }
@@ -157,7 +158,7 @@ void AMPlayerCharacterBase::GrantStartupAbilities()
 			const FGameplayTag& InputTag = DefaultAbility->GetInputTag();
 			if (InputTag.IsValid())
 			{
-				AbilitySpec.DynamicAbilityTags.AddTag(InputTag);
+				AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
 			}
 		}
 

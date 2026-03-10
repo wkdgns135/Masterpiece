@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
-#include "Gameplay/Character/Skill/MPlayerSkillTypes.h"
 #include "Components/SceneComponent.h"
 #include "MPlayerInputComponent.generated.h"
 
@@ -28,8 +27,7 @@ DECLARE_MULTICAST_DELEGATE(FOnPrimaryAttackTriggered);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnZoomTriggered, float);
 DECLARE_MULTICAST_DELEGATE(FOnInteractionTriggered);
 DECLARE_MULTICAST_DELEGATE(FOnDodgeTriggered);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillSlotTriggered, EMPlayerSkillType);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnQuickSlotTriggered, EMQuickSlot);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillSlotTriggered, int32);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerInputComponent : public USceneComponent
@@ -83,10 +81,6 @@ private:
 	FOnInteractionTriggered InteractionTriggered;
 	FOnDodgeTriggered DodgeTriggered;
 	FOnSkillSlotTriggered SkillSlotTriggered;
-	FOnQuickSlotTriggered QuickSlotTriggered;
-
-	static EMPlayerSkillType ToSkillType(float InputValue);
-	static EMQuickSlot ToQuickSlot(float InputValue);
 
 public:
 	FORCEINLINE FOnMoveCommandTriggered& OnMoveCommandTriggered()
@@ -122,10 +116,5 @@ public:
 	FORCEINLINE FOnSkillSlotTriggered& OnSkillSlotTriggered()
 	{
 		return SkillSlotTriggered;
-	}
-
-	FORCEINLINE FOnQuickSlotTriggered& OnQuickSlotTriggered()
-	{
-		return QuickSlotTriggered;
 	}
 };

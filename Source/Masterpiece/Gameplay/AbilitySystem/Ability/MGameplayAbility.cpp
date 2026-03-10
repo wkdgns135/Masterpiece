@@ -71,11 +71,6 @@ AActor* UMGameplayAbility::GetAvatarActor() const
 	return GetAvatarActorFromActorInfo();
 }
 
-AMPlayerCharacterBase* UMGameplayAbility::GetPlayerCharacterFromActorInfo() const
-{
-	return Cast<AMPlayerCharacterBase>(GetAvatarActorFromActorInfo());
-}
-
 bool UMGameplayAbility::HasEnoughCost() const
 {
 	if (!CurrentActorInfo || !CurrentActorInfo->AbilitySystemComponent.IsValid())

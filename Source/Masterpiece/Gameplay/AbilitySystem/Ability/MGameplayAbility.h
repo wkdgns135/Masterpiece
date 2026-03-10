@@ -35,9 +35,6 @@ protected:
 	AActor* GetAvatarActor() const;
 
 	UFUNCTION(BlueprintPure, Category="Ability|Common")
-	class AMPlayerCharacterBase* GetPlayerCharacterFromActorInfo() const;
-
-	UFUNCTION(BlueprintPure, Category="Ability|Common")
 	bool HasEnoughCost() const;
 
 	UFUNCTION(BlueprintPure, Category="Ability|Common")

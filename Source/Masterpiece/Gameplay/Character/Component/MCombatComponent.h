@@ -23,16 +23,7 @@ public:
 	UFUNCTION(BlueprintPure, Category="Combat")
 	AMCharacterBase* GetOwnerCharacter() const;
 
-	UFUNCTION(BlueprintCallable, Category="Combat")
-	bool IsSkillOnCooldown(FName SkillId, float CooldownSeconds) const;
-
-	UFUNCTION(BlueprintCallable, Category="Combat")
-	void CommitSkillUsage(FName SkillId);
-
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<AMCharacterBase> OwnerCharacter;
-
-	UPROPERTY(Transient)
-	TMap<FName, float> LastSkillUseTime;
 };

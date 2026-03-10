@@ -7,7 +7,29 @@
 #include "MPlayerMovementComponent.generated.h"
 
 struct FInputActionValue;
+struct FTimerHandle;
 class AMPlayerCharacterBase;
+
+USTRUCT(BlueprintType)
+struct FMRotationSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
+	float MinRotationSpeedDegPerSec = 360.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
+	float MaxRotationSpeedDegPerSec = 1440.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
+	float RotationCompleteThresholdDeg = 1.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
+	float RotationStartThresholdDeg = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
+	float RotationUpdateIntervalSec = 0.016f;
+};
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerMovementComponent : public USceneComponent
@@ -35,8 +57,27 @@ public:
 	void FaceCursorDirection();
 
 private:
+	void StartRotationInterpolationTimer();
+	void StopRotationInterpolationTimer();
+	void UpdateRotationWithTimer();
+
+private:
 	UPROPERTY()
 	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
+
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Rotation", meta=(ShowOnlyInnerProperties))
+	FMRotationSettings RotationSettings;
+
+	UPROPERTY(Transient)
+	FRotator DesiredRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(Transient)
+	float LastRotationUpdateTimeSec = 0.0f;
+
+	UPROPERTY(Transient)
+	bool bHasDesiredRotation = false;
+
+	FTimerHandle RotationTimerHandle;
 
 	FDelegateHandle MoveCommandDelegateHandle;
 	FDelegateHandle CursorAimDelegateHandle;

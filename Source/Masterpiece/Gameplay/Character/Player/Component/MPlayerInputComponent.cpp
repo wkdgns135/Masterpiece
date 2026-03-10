@@ -102,22 +102,29 @@ void UMPlayerInputComponent::HandleDodgeTriggered(const FInputActionValue& Value
 
 void UMPlayerInputComponent::HandleSkillSlotTriggered(const FInputActionValue& Value)
 {
-	SkillSlotTriggered.Broadcast(ToSkillType(Value.Get<float>()));
+	int32 SkillSlotIndex = INDEX_NONE;
+
+	switch (Value.GetValueType())
+	{
+	case EInputActionValueType::Boolean:
+		SkillSlotIndex = Value.Get<bool>() ? 0 : INDEX_NONE;
+		break;
+	case EInputActionValueType::Axis1D:
+		SkillSlotIndex = FMath::RoundToInt(Value.Get<float>());
+		break;
+	case EInputActionValueType::Axis2D:
+		SkillSlotIndex = FMath::RoundToInt(Value.Get<FVector2D>().X);
+		break;
+	case EInputActionValueType::Axis3D:
+		SkillSlotIndex = FMath::RoundToInt(Value.Get<FVector>().X);
+		break;
+	default:
+		break;
+	}
+
+	SkillSlotTriggered.Broadcast(SkillSlotIndex);
 }
 
 void UMPlayerInputComponent::HandleQuickSlotTriggered(const FInputActionValue& Value)
 {
-	QuickSlotTriggered.Broadcast(ToQuickSlot(Value.Get<float>()));
-}
-
-EMPlayerSkillType UMPlayerInputComponent::ToSkillType(const float InputValue)
-{
-	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMPlayerSkillType::MAX) - 1);
-	return static_cast<EMPlayerSkillType>(SlotIndex);
-}
-
-EMQuickSlot UMPlayerInputComponent::ToQuickSlot(const float InputValue)
-{
-	const int32 SlotIndex = FMath::Clamp(FMath::RoundToInt(InputValue) - 1, 0, static_cast<int32>(EMQuickSlot::MAX) - 1);
-	return static_cast<EMQuickSlot>(SlotIndex);
 }

@@ -23,38 +23,3 @@ AMCharacterBase* UMCombatComponent::GetOwnerCharacter() const
 	return OwnerCharacter;
 }
 
-bool UMCombatComponent::IsSkillOnCooldown(const FName SkillId, const float CooldownSeconds) const
-{
-	if (SkillId.IsNone() || CooldownSeconds <= 0.0f)
-	{
-		return false;
-	}
-
-	const float* LastUseTime = LastSkillUseTime.Find(SkillId);
-	if (!LastUseTime)
-	{
-		return false;
-	}
-
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		return false;
-	}
-
-	return (World->GetTimeSeconds() - *LastUseTime) < CooldownSeconds;
-}
-
-void UMCombatComponent::CommitSkillUsage(const FName SkillId)
-{
-	if (SkillId.IsNone())
-	{
-		return;
-	}
-
-	if (UWorld* World = GetWorld())
-	{
-		LastSkillUseTime.Add(SkillId, World->GetTimeSeconds());
-	}
-}
-

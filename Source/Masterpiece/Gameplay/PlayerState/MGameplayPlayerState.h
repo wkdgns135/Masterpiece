@@ -16,6 +16,7 @@ class MASTERPIECE_API AMGameplayPlayerState : public APlayerState, public IMAbil
 	GENERATED_BODY()
 	
 public:
+	AMGameplayPlayerState();
 	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() override;
 	
 private:
