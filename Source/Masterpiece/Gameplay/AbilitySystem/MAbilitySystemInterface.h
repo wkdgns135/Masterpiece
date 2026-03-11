@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "MAbilitySystemInterface.generated.h"
 
+struct FGameplayTag;
 class UMAbilitySystemComponent;
 
 UINTERFACE(MinimalAPI, NotBlueprintable)
@@ -22,5 +23,7 @@ class MASTERPIECE_API IMAbilitySystemInterface
 	GENERATED_BODY()
 
 public:
-	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() = 0;
+	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() const = 0;
+
+	bool TryActivateAbilityByTag(const FGameplayTag& AbilityTag) const;
 };

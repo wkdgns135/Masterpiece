@@ -3,17 +3,18 @@
 
 #include "MPlayerCombatComponent.h"
 
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemInterface.h"
-#include "GameplayTagContainer.h"
-#include "Gameplay/AbilitySystem/MGameplayTags.h"
+#include "Gameplay/AbilitySystem/MAbilitySystemInterface.h"
+#include "Gameplay/MGameplayTags.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 
-UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Skill_Q, "Input.Ability_Skill_Q");
-UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Skill_W, "Input.Ability_Skill_W");
-UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Skill_E, "Input.Ability_Skill_E");
-UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Skill_R, "Input.Ability_Skill_R");
+namespace
+{
+bool TryActivatePlayerAbilityTag(AMPlayerCharacterBase* PlayerCharacter, const FGameplayTag& AbilityTag)
+{
+	return PlayerCharacter ? PlayerCharacter->TryActivateAbilityByTag(AbilityTag) : false;
+}
+}
 
 UMPlayerCombatComponent::UMPlayerCombatComponent()
 {
@@ -37,17 +38,17 @@ void UMPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool UMPlayerCombatComponent::ExecutePrimaryAttack()
 {
-	return TryActivateAbilityByInputTag(MGameplayTags::Input_Ability_PrimaryAttack);
+	return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Attack_Primary);
 }
 
 bool UMPlayerCombatComponent::ExecuteDodge()
 {
-	return TryActivateAbilityByInputTag(MGameplayTags::Input_Ability_Dodge);
+	return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Dodge);
 }
 
 bool UMPlayerCombatComponent::ExecuteInteraction()
 {
-	return TryActivateAbilityByInputTag(MGameplayTags::Input_Action_Interaction);
+	return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Interaction);
 }
 
 bool UMPlayerCombatComponent::ExecuteSkillSlot(const int32 SkillSlotIndex)
@@ -55,13 +56,13 @@ bool UMPlayerCombatComponent::ExecuteSkillSlot(const int32 SkillSlotIndex)
 	switch (SkillSlotIndex)
 	{
 	case 0:
-		return TryActivateAbilityByInputTag(Input_Ability_Skill_Q);
+		return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Skill_Q);
 	case 1:
-		return TryActivateAbilityByInputTag(Input_Ability_Skill_W);
+		return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Skill_W);
 	case 2:
-		return TryActivateAbilityByInputTag(Input_Ability_Skill_E);
+		return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Skill_E);
 	case 3:
-		return TryActivateAbilityByInputTag(Input_Ability_Skill_R);
+		return TryActivatePlayerAbilityTag(GetPlayerCharacter(), MGameplayTags::Ability_Skill_R);
 	default:
 		return false;
 	}

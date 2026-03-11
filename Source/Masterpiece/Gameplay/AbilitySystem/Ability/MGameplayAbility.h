@@ -17,7 +17,7 @@ public:
 	UMGameplayAbility();
 
 	UFUNCTION(BlueprintPure, Category="Ability")
-	const FGameplayTag& GetInputTag() const;
+	const FGameplayTag& GetAbilityTag() const;
 
 protected:
 	virtual bool CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -50,9 +50,9 @@ protected:
 	void EndAbilityAsCancelled(bool bReplicateEndAbility = true);
 
 protected:
-	// Input tag used for ASC activation lookup.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Input")
-	FGameplayTag InputTag;
+	// Ability identity tag used for ASC activation lookup.
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Identity")
+	FGameplayTag AbilityTag;
 
 	// Additional costs layered on top of native GAS cost handling.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Ability|Cost")

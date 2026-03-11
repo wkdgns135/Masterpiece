@@ -17,9 +17,19 @@ class MASTERPIECE_API AMGameplayPlayerState : public APlayerState, public IMAbil
 	
 public:
 	AMGameplayPlayerState();
-	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() override;
+	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	class UMAttributeSet* GetAttributeSet() const;
+
+	bool AreStartupAbilitiesGranted() const;
+	void SetStartupAbilitiesGranted(bool bGranted);
 	
 private:
 	UPROPERTY(VisibleAnywhere, Category = "PlayerState")
 	TObjectPtr<UMAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "PlayerState")
+	TObjectPtr<class UMAttributeSet> AttributeSet;
+
+	UPROPERTY(Transient)
+	bool bStartupAbilitiesGranted = false;
 };

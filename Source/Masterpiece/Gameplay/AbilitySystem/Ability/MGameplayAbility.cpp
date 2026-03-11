@@ -11,9 +11,9 @@ UMGameplayAbility::UMGameplayAbility()
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
-const FGameplayTag& UMGameplayAbility::GetInputTag() const
+const FGameplayTag& UMGameplayAbility::GetAbilityTag() const
 {
-	return InputTag;
+	return AbilityTag;
 }
 
 bool UMGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

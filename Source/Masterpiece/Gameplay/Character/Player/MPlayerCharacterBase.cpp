@@ -13,6 +13,7 @@
 #include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
 #include "Gameplay/AbilitySystem/Attribute/MAttributeSet.h"
 #include "Gameplay/AbilitySystem/Ability/MGameplayAbility.h"
+#include "Gameplay/PlayerState/MGameplayPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -30,12 +31,6 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 
 	PlayerCombatComponent = CreateDefaultSubobject<UMPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
 	PlayerCombatComponent->SetupAttachment(RootComponent);
-
-	AbilitySystemComponent = CreateDefaultSubobject<UMAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	AttributeSet = CreateDefaultSubobject<UMAttributeSet>(TEXT("AttributeSet"));
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
@@ -61,9 +56,24 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	
 }
 
-UAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() const
+UMAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
+	{
+		return GameplayPlayerState->GetAbilitySystemComponent();
+	}
+
+	return nullptr;
+}
+
+UMAttributeSet* AMPlayerCharacterBase::GetAttributeSet() const
+{
+	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
+	{
+		return GameplayPlayerState->GetAttributeSet();
+	}
+
+	return nullptr;
 }
 
 void AMPlayerCharacterBase::BeginPlay()
@@ -71,8 +81,20 @@ void AMPlayerCharacterBase::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeAbilitySystem();
-	InitializeDefaultAttributes();
-	GrantStartupAbilities();
+}
+
+void AMPlayerCharacterBase::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	InitializeAbilitySystem();
+}
+
+void AMPlayerCharacterBase::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	InitializeAbilitySystem();
 }
 
 void AMPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* InInputComponent)
@@ -88,6 +110,7 @@ void AMPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* InInputCo
 
 void AMPlayerCharacterBase::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
 {
+	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
 	if (!AbilitySystemComponent || Damage <= 0.0f)
 	{
 		return;
@@ -102,6 +125,7 @@ void AMPlayerCharacterBase::HandleDeath()
 
 void AMPlayerCharacterBase::ApplyHealing(float Healing, AActor* Healer)
 {
+	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
 	if (!AbilitySystemComponent || Healing <= 0.0f)
 	{
 		return;
@@ -115,16 +139,31 @@ void AMPlayerCharacterBase::DoAttackTrace(FName DamageSourceBone)
 
 void AMPlayerCharacterBase::InitializeAbilitySystem()
 {
-	if (!AbilitySystemComponent)
+	AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState();
+	if (!GameplayPlayerState)
 	{
 		return;
 	}
 
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	UMAbilitySystemComponent* AbilitySystemComponent = GameplayPlayerState->GetAbilitySystemComponent();
+	UMAttributeSet* AttributeSet = GameplayPlayerState->GetAttributeSet();
+	if (!AbilitySystemComponent || !AttributeSet)
+	{
+		return;
+	}
+
+	AbilitySystemComponent->InitAbilityActorInfo(GameplayPlayerState, this);
+
+	if (HasAuthority())
+	{
+		InitializeDefaultAttributes();
+		GrantStartupAbilities();
+	}
 }
 
 void AMPlayerCharacterBase::InitializeDefaultAttributes()
 {
+	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
 	if (!AbilitySystemComponent)
 	{
 		return;
@@ -140,7 +179,9 @@ void AMPlayerCharacterBase::InitializeDefaultAttributes()
 
 void AMPlayerCharacterBase::GrantStartupAbilities()
 {
-	if (!AbilitySystemComponent || !HasAuthority())
+	AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState();
+	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	if (!AbilitySystemComponent || !GameplayPlayerState || !HasAuthority() || GameplayPlayerState->AreStartupAbilitiesGranted())
 	{
 		return;
 	}
@@ -155,13 +196,20 @@ void AMPlayerCharacterBase::GrantStartupAbilities()
 		FGameplayAbilitySpec AbilitySpec(AbilityClass, 1);
 		if (const UMGameplayAbility* DefaultAbility = AbilityClass->GetDefaultObject<UMGameplayAbility>())
 		{
-			const FGameplayTag& InputTag = DefaultAbility->GetInputTag();
-			if (InputTag.IsValid())
+			const FGameplayTag& AbilityTag = DefaultAbility->GetAbilityTag();
+			if (AbilityTag.IsValid())
 			{
-				AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
+				AbilitySpec.GetDynamicSpecSourceTags().AddTag(AbilityTag);
 			}
 		}
 
 		AbilitySystemComponent->GiveAbility(AbilitySpec);
 	}
+
+	GameplayPlayerState->SetStartupAbilitiesGranted(true);
+}
+
+AMGameplayPlayerState* AMPlayerCharacterBase::GetGameplayPlayerState() const
+{
+	return GetPlayerState<AMGameplayPlayerState>();
 }

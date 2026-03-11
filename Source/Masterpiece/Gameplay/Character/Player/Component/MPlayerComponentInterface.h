@@ -6,7 +6,6 @@
 #include "UObject/Interface.h"
 #include "MPlayerComponentInterface.generated.h"
 
-struct FGameplayTag;
 class AMPlayerCharacterBase;
 UINTERFACE(MinimalAPI, NotBlueprintable)
 class UMPlayerComponentInterface : public UInterface
@@ -23,6 +22,4 @@ class MASTERPIECE_API IMPlayerComponentInterface
 
 public:
 	AMPlayerCharacterBase* GetPlayerCharacter() const;
-	
-	bool TryActivateAbilityByInputTag(const FGameplayTag& InputTag) const;
 };

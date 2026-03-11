@@ -3,5 +3,23 @@
 
 #include "MAbilitySystemInterface.h"
 
+#include "GameplayTagContainer.h"
+#include "MAbilitySystemComponent.h"
 
-// Add default functionality here for any IMAbilitySystemInterface functions that are not pure virtual.
+bool IMAbilitySystemInterface::TryActivateAbilityByTag(const FGameplayTag& AbilityTag) const
+{
+	if (!AbilityTag.IsValid())
+	{
+		return false;
+	}
+
+	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	if (!AbilitySystemComponent)
+	{
+		return false;
+	}
+
+	FGameplayTagContainer TagContainer;
+	TagContainer.AddTag(AbilityTag);
+	return AbilitySystemComponent->TryActivateAbilitiesByTag(TagContainer, true);
+}
