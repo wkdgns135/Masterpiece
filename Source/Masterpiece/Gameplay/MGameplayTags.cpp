@@ -33,6 +33,7 @@ namespace MGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Interaction, "Ability.Interaction");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Attack_Hit, "Event.Attack.Hit");
+	UE_DEFINE_GAMEPLAY_TAG(Event_Attack_Request, "Event.Attack.Request");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Attack_Trace_Start, "Event.Attack.Trace.Start");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Attack_Trace_End, "Event.Attack.Trace.End");
 	UE_DEFINE_GAMEPLAY_TAG(Event_Combo_Open, "Event.Combo.Open");

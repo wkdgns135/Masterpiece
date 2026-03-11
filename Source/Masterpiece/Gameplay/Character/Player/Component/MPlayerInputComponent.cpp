@@ -4,7 +4,6 @@
 #include "MPlayerInputComponent.h"
 
 #include "EnhancedInputComponent.h"
-#include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Input/MPlayerInputConfig.h"
 
 UMPlayerInputComponent::UMPlayerInputComponent()
@@ -15,9 +14,7 @@ UMPlayerInputComponent::UMPlayerInputComponent()
 void UMPlayerInputComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
-	check(PlayerCharacter);
+	check(GetMPlayerCharacter());
 }
 
 void UMPlayerInputComponent::BindInputActions(UEnhancedInputComponent* EnhancedInputComponent)

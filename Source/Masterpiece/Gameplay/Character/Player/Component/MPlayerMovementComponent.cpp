@@ -4,24 +4,18 @@
 #include "MPlayerMovementComponent.h"
 
 #include "Blueprint/AIBlueprintHelperLibrary.h"
-#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
+#include "GameFramework/Controller.h"
+#include "Gameplay/Interface/MDamageable.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
+#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "TimerManager.h"
-
-UMPlayerMovementComponent::UMPlayerMovementComponent()
-{
-	PrimaryComponentTick.bCanEverTick = false;
-}
 
 void UMPlayerMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
-	check(PlayerCharacter);
-
-	UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent();
+	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
 	check(InputComponent);
 
 	MoveCommandDelegateHandle = InputComponent->OnMoveCommandTriggered().AddUObject(this, &ThisClass::HandleMoveCommand);
@@ -32,13 +26,10 @@ void UMPlayerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 {
 	StopRotationInterpolationTimer();
 
-	if (PlayerCharacter)
+	if (UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent())
 	{
-		if (UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent())
-		{
-			InputComponent->OnMoveCommandTriggered().Remove(MoveCommandDelegateHandle);
-			InputComponent->OnCursorAimTriggered().Remove(CursorAimDelegateHandle);
-		}
+		InputComponent->OnMoveCommandTriggered().Remove(MoveCommandDelegateHandle);
+		InputComponent->OnCursorAimTriggered().Remove(CursorAimDelegateHandle);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -56,14 +47,21 @@ void UMPlayerMovementComponent::HandleCursorAim(const FInputActionValue& Value)
 
 void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 {
-	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
-	if (!PlayerController)
+	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
+	if (!PlayerCharacter || !PlayerController)
 	{
 		return;
 	}
 
+
 	FHitResult CursorHit;
 	if (!PlayerController->TraceCursorToWorld(CursorHit))
+	{
+		return;
+	}
+
+	if (const AActor* HitActor = CursorHit.GetActor(); IsValid(HitActor) && HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
 	{
 		return;
 	}
@@ -75,10 +73,29 @@ void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(PlayerController, Destination);
 }
 
+void UMPlayerMovementComponent::IssueMoveToActorCommand(AActor* TargetActor)
+{
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	if (!PlayerCharacter || !IsValid(TargetActor))
+	{
+		return;
+	}
+
+	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
+	if (!PlayerController)
+	{
+		return;
+	}
+
+	FaceCursorDirection();
+	UAIBlueprintHelperLibrary::SimpleMoveToActor(PlayerController, TargetActor);
+}
+
 void UMPlayerMovementComponent::FaceCursorDirection()
 {
-	AMGameplayPlayerController* PlayerController = Cast<AMGameplayPlayerController>(PlayerCharacter->GetController());
-	if (!PlayerController)
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	const AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
+	if (!PlayerCharacter || !PlayerController)
 	{
 		return;
 	}
@@ -138,6 +155,7 @@ void UMPlayerMovementComponent::StopRotationInterpolationTimer()
 
 void UMPlayerMovementComponent::UpdateRotationWithTimer()
 {
+	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	if (!PlayerCharacter || !bHasDesiredRotation)
 	{
 		StopRotationInterpolationTimer();

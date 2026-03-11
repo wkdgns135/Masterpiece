@@ -7,6 +7,9 @@
 #include "MPlayerComponentInterface.generated.h"
 
 class AMPlayerCharacterBase;
+class AMGameplayPlayerController;
+class AMGameplayPlayerState;
+class UMPlayerInputComponent;
 UINTERFACE(MinimalAPI, NotBlueprintable)
 class UMPlayerComponentInterface : public UInterface
 {
@@ -21,5 +24,8 @@ class MASTERPIECE_API IMPlayerComponentInterface
 	GENERATED_BODY()
 
 public:
-	AMPlayerCharacterBase* GetPlayerCharacter() const;
+	AMPlayerCharacterBase* GetMPlayerCharacter() const;
+	AMGameplayPlayerController* GetMGameplayPlayerController() const;
+	AMGameplayPlayerState* GetMGameplayPlayerState() const;
+	UMPlayerInputComponent* GetMPlayerInputComponent() const;
 };

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "Components/SceneComponent.h"
+#include "MPlayerComponentInterface.h"
 #include "MPlayerInputComponent.generated.h"
 
 class UEnhancedInputComponent;
@@ -30,7 +31,7 @@ DECLARE_MULTICAST_DELEGATE(FOnDodgeTriggered);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnSkillSlotTriggered, int32);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerInputComponent : public USceneComponent
+class MASTERPIECE_API UMPlayerInputComponent : public USceneComponent, public IMPlayerComponentInterface
 {
 	GENERATED_BODY()
 
@@ -71,9 +72,6 @@ public:
 	TObjectPtr<UMPlayerInputConfig> InputConfig;
 	
 private:
-	UPROPERTY()
-	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
-
 	FOnMoveCommandTriggered MoveCommandTriggered;
 	FOnCursorAimTriggered CursorAimTriggered;
 	FOnPrimaryAttackTriggered PrimaryAttackTriggered;

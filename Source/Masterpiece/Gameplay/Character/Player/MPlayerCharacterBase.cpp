@@ -4,6 +4,7 @@
 #include "MPlayerCharacterBase.h"
 
 #include "EnhancedInputComponent.h"
+#include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/MPlayerCameraComponent.h"
@@ -11,21 +12,20 @@
 #include "Component/MPlayerInputComponent.h"
 #include "Component/MPlayerMovementComponent.h"
 #include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
-#include "Gameplay/AbilitySystem/Attribute/MAttributeSet.h"
 #include "Gameplay/AbilitySystem/Ability/MGameplayAbility.h"
+#include "Gameplay/AbilitySystem/Attribute/MCombatAttributeSet.h"
+#include "Gameplay/AbilitySystem/Attribute/MPlayerAttributeSet.h"
 #include "Gameplay/PlayerState/MGameplayPlayerState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 
-AMPlayerCharacterBase::AMPlayerCharacterBase()
+AMPlayerCharacterBase::AMPlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPlayerMovementComponent>(CharacterMovementComponentName))
 {
 	PlayerInputComponent = CreateDefaultSubobject<UMPlayerInputComponent>(TEXT("PlayerInputComponent"));
 	PlayerInputComponent->SetupAttachment(RootComponent);
-	
-	PlayerMovementComponent = CreateDefaultSubobject<UMPlayerMovementComponent>(TEXT("PlayerMovementComponent"));
-	PlayerMovementComponent->SetupAttachment(RootComponent);
-	
+
 	PlayerCameraComponent = CreateDefaultSubobject<UMPlayerCameraComponent>(TEXT("PlayerCameraComponent"));
 	PlayerCameraComponent->SetupAttachment(RootComponent);
 
@@ -56,7 +56,17 @@ AMPlayerCharacterBase::AMPlayerCharacterBase()
 	
 }
 
-UMAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() const
+UMAbilitySystemComponent* AMPlayerCharacterBase::GetMAbilitySystemComponent() const
+{
+	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
+	{
+		return GameplayPlayerState->GetMAbilitySystemComponent();
+	}
+
+	return nullptr;
+}
+
+UAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() const
 {
 	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
 	{
@@ -66,11 +76,27 @@ UMAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() con
 	return nullptr;
 }
 
-UMAttributeSet* AMPlayerCharacterBase::GetAttributeSet() const
+UMPlayerMovementComponent* AMPlayerCharacterBase::GetPlayerMovementComponent() const
+{
+	UMPlayerMovementComponent* PlayerMovementComponent = Cast<UMPlayerMovementComponent>(GetCharacterMovement());
+	return PlayerMovementComponent;
+}
+
+UMCombatAttributeSet* AMPlayerCharacterBase::GetCombatAttributeSet() const
 {
 	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
 	{
-		return GameplayPlayerState->GetAttributeSet();
+		return GameplayPlayerState->GetCombatAttributeSet();
+	}
+
+	return nullptr;
+}
+
+UMPlayerAttributeSet* AMPlayerCharacterBase::GetPlayerAttributeSet() const
+{
+	if (const AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState())
+	{
+		return GameplayPlayerState->GetPlayerAttributeSet();
 	}
 
 	return nullptr;
@@ -110,7 +136,7 @@ void AMPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* InInputCo
 
 void AMPlayerCharacterBase::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
 {
-	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	UMAbilitySystemComponent* AbilitySystemComponent = GetMAbilitySystemComponent();
 	if (!AbilitySystemComponent || Damage <= 0.0f)
 	{
 		return;
@@ -125,7 +151,7 @@ void AMPlayerCharacterBase::HandleDeath()
 
 void AMPlayerCharacterBase::ApplyHealing(float Healing, AActor* Healer)
 {
-	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	UMAbilitySystemComponent* AbilitySystemComponent = GetMAbilitySystemComponent();
 	if (!AbilitySystemComponent || Healing <= 0.0f)
 	{
 		return;
@@ -145,9 +171,10 @@ void AMPlayerCharacterBase::InitializeAbilitySystem()
 		return;
 	}
 
-	UMAbilitySystemComponent* AbilitySystemComponent = GameplayPlayerState->GetAbilitySystemComponent();
-	UMAttributeSet* AttributeSet = GameplayPlayerState->GetAttributeSet();
-	if (!AbilitySystemComponent || !AttributeSet)
+	UMAbilitySystemComponent* AbilitySystemComponent = GameplayPlayerState->GetMAbilitySystemComponent();
+	UMCombatAttributeSet* CombatAttributeSet = GameplayPlayerState->GetCombatAttributeSet();
+	UMPlayerAttributeSet* PlayerAttributeSet = GameplayPlayerState->GetPlayerAttributeSet();
+	if (!AbilitySystemComponent || !CombatAttributeSet || !PlayerAttributeSet)
 	{
 		return;
 	}
@@ -163,8 +190,10 @@ void AMPlayerCharacterBase::InitializeAbilitySystem()
 
 void AMPlayerCharacterBase::InitializeDefaultAttributes()
 {
-	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
-	if (!AbilitySystemComponent)
+	UMAbilitySystemComponent* AbilitySystemComponent = GetMAbilitySystemComponent();
+	UMCombatAttributeSet* CombatAttributeSet = GetCombatAttributeSet();
+	UMPlayerAttributeSet* PlayerAttributeSet = GetPlayerAttributeSet();
+	if (!AbilitySystemComponent || !CombatAttributeSet || !PlayerAttributeSet)
 	{
 		return;
 	}
@@ -172,7 +201,16 @@ void AMPlayerCharacterBase::InitializeDefaultAttributes()
 	const FBaseStat& BaseStat = DefaultPlayerStat.BaseStat;
 	const float ClampedHealth = FMath::Clamp(DefaultPlayerStat.BaseStat.CurrentHealth, 0.0f, BaseStat.MaxHealth);
 	const float ClampedMana = FMath::Clamp(DefaultPlayerStat.CurrentMana, 0.0f, DefaultPlayerStat.MaxMana);
-	
+	CombatAttributeSet->InitMaxHealth(BaseStat.MaxHealth);
+	CombatAttributeSet->InitHealth(ClampedHealth);
+	CombatAttributeSet->InitMoveSpeed(BaseStat.MoveSpeed);
+	CombatAttributeSet->InitAttackPower(BaseStat.AttackPower);
+	CombatAttributeSet->InitAttackSpeed(BaseStat.AttackSpeed);
+	CombatAttributeSet->InitAttackRange(BaseStat.AttackRange);
+	CombatAttributeSet->InitDefense(BaseStat.DefensePower);
+
+	PlayerAttributeSet->InitMaxMana(DefaultPlayerStat.MaxMana);
+	PlayerAttributeSet->InitMana(ClampedMana);
 
 	GetCharacterMovement()->MaxWalkSpeed = BaseStat.MoveSpeed;
 }
@@ -180,7 +218,7 @@ void AMPlayerCharacterBase::InitializeDefaultAttributes()
 void AMPlayerCharacterBase::GrantStartupAbilities()
 {
 	AMGameplayPlayerState* GameplayPlayerState = GetGameplayPlayerState();
-	UMAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponent();
+	UMAbilitySystemComponent* AbilitySystemComponent = GetMAbilitySystemComponent();
 	if (!AbilitySystemComponent || !GameplayPlayerState || !HasAuthority() || GameplayPlayerState->AreStartupAbilitiesGranted())
 	{
 		return;

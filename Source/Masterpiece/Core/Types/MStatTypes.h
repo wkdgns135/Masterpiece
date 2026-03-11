@@ -26,6 +26,9 @@ struct FBaseStat
 	float AttackSpeed = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stat|Base")
+	float AttackRange = 150.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Stat|Base")
 	float DefensePower = 0.0f;
 };
 

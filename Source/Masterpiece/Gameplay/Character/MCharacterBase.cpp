@@ -4,7 +4,8 @@
 #include "MCharacterBase.h"
 
 
-AMCharacterBase::AMCharacterBase()
+AMCharacterBase::AMCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 }

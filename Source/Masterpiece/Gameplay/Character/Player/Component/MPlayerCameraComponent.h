@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "MPlayerComponentInterface.h"
 #include "MPlayerCameraComponent.generated.h"
 
 class UCameraComponent;
@@ -11,7 +12,7 @@ class USpringArmComponent;
 class AMPlayerCharacterBase;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerCameraComponent : public USceneComponent
+class MASTERPIECE_API UMPlayerCameraComponent : public USceneComponent, public IMPlayerComponentInterface
 {
 	GENERATED_BODY()
 
@@ -29,9 +30,6 @@ private:
 	void InitializeCameraComponents();
 
 private:
-	UPROPERTY()
-	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
-
 	FDelegateHandle ZoomDelegateHandle;
 
 	UPROPERTY(EditAnywhere, Category="Camera")

@@ -3,9 +3,11 @@
 
 #include "MAttributeSet.h"
 
-#include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
+UMAttributeSet::UMAttributeSet()
+{
+}
 
-UMAbilitySystemComponent* UMAttributeSet::GetAbilitySystemComponent() const
+UMAbilitySystemComponent* UMAttributeSet::GetMAbilitySystemComponent() const
 {
 	return Cast<UMAbilitySystemComponent>(GetOwningAbilitySystemComponent());
 }

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "Gameplay/AbilitySystem/MAbilitySystemInterface.h"
 #include "Core/Types/MStatTypes.h"
 #include "Gameplay/Character/MCharacterBase.h"
 #include "Gameplay/Character/Interface/MAttacker.h"
@@ -13,9 +12,10 @@
 
 class UAbilitySystemComponent;
 class UMAbilitySystemComponent;
-class UMAttributeSet;
+class UMCombatAttributeSet;
 class UMGameplayAbility;
 class UMPlayerCameraComponent;
+class UMPlayerAttributeSet;
 class UMPlayerCombatComponent;
 class UMPlayerInputComponent;
 class UMPlayerMovementComponent;
@@ -23,13 +23,14 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS(Abstract)
-class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IMAbilitySystemInterface, public IMDamageable, public IMAttacker
+class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IAbilitySystemInterface, public IMDamageable, public IMAttacker
 {
 	GENERATED_BODY()
 
 public:
-	AMPlayerCharacterBase();
-	virtual UMAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	AMPlayerCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	UMAbilitySystemComponent* GetMAbilitySystemComponent() const;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -49,9 +50,6 @@ protected:
 	/** 플레이어 전용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMPlayerInputComponent> PlayerInputComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UMPlayerMovementComponent> PlayerMovementComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMPlayerCameraComponent> PlayerCameraComponent;
@@ -89,11 +87,6 @@ public:
 		check(FollowCameraComponent);
 		return FollowCameraComponent;
 	}
-	FORCEINLINE UMPlayerMovementComponent* GetPlayerMovementComponent() const
-	{
-		check(PlayerMovementComponent);
-		return PlayerMovementComponent;
-	}
 	FORCEINLINE UMPlayerCameraComponent* GetPlayerCameraComponent() const
 	{
 		check(PlayerCameraComponent);
@@ -109,5 +102,7 @@ public:
 		check(PlayerCombatComponent);
 		return PlayerCombatComponent;
 	}
-	UMAttributeSet* GetAttributeSet() const;
+	UMPlayerMovementComponent* GetPlayerMovementComponent() const;
+	UMCombatAttributeSet* GetCombatAttributeSet() const;
+	UMPlayerAttributeSet* GetPlayerAttributeSet() const;
 };

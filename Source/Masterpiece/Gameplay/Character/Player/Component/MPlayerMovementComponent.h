@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "MPlayerComponentInterface.h"
 #include "MPlayerMovementComponent.generated.h"
 
 struct FInputActionValue;
@@ -32,12 +33,9 @@ struct FMRotationSettings
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMPlayerMovementComponent : public USceneComponent
+class MASTERPIECE_API UMPlayerMovementComponent : public UCharacterMovementComponent, public IMPlayerComponentInterface
 {
 	GENERATED_BODY()
-
-public:
-	UMPlayerMovementComponent();
 
 protected:
 	virtual void BeginPlay() override;
@@ -53,6 +51,9 @@ public:
 	UFUNCTION()
 	void IssueMoveToCursorCommand();
 
+	UFUNCTION(BlueprintCallable, Category="Movement")
+	void IssueMoveToActorCommand(AActor* TargetActor);
+
 	UFUNCTION()
 	void FaceCursorDirection();
 
@@ -62,9 +63,6 @@ private:
 	void UpdateRotationWithTimer();
 
 private:
-	UPROPERTY()
-	TObjectPtr<AMPlayerCharacterBase> PlayerCharacter;
-
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Rotation", meta=(ShowOnlyInnerProperties))
 	FMRotationSettings RotationSettings;
 

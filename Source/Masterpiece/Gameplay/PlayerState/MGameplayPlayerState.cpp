@@ -4,7 +4,8 @@
 #include "MGameplayPlayerState.h"
 
 #include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
-#include "Gameplay/AbilitySystem/Attribute/MAttributeSet.h"
+#include "Gameplay/AbilitySystem/Attribute/MCombatAttributeSet.h"
+#include "Gameplay/AbilitySystem/Attribute/MPlayerAttributeSet.h"
 
 AMGameplayPlayerState::AMGameplayPlayerState()
 {
@@ -12,17 +13,28 @@ AMGameplayPlayerState::AMGameplayPlayerState()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMAttributeSet>(TEXT("AttributeSet"));
+	CombatAttributeSet = CreateDefaultSubobject<UMCombatAttributeSet>(TEXT("CombatAttributeSet"));
+	PlayerAttributeSet = CreateDefaultSubobject<UMPlayerAttributeSet>(TEXT("PlayerAttributeSet"));
 }
 
-UMAbilitySystemComponent* AMGameplayPlayerState::GetAbilitySystemComponent() const
+UMAbilitySystemComponent* AMGameplayPlayerState::GetMAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
 
-UMAttributeSet* AMGameplayPlayerState::GetAttributeSet() const
+UAbilitySystemComponent* AMGameplayPlayerState::GetAbilitySystemComponent() const
 {
-	return AttributeSet;
+	return AbilitySystemComponent;
+}
+
+UMCombatAttributeSet* AMGameplayPlayerState::GetCombatAttributeSet() const
+{
+	return CombatAttributeSet;
+}
+
+UMPlayerAttributeSet* AMGameplayPlayerState::GetPlayerAttributeSet() const
+{
+	return PlayerAttributeSet;
 }
 
 bool AMGameplayPlayerState::AreStartupAbilitiesGranted() const

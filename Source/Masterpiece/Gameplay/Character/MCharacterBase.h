@@ -12,7 +12,7 @@ class MASTERPIECE_API AMCharacterBase : public ACharacter
 	GENERATED_BODY()
 
 public:
-	AMCharacterBase();
+	AMCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
 	virtual void BeginPlay() override;

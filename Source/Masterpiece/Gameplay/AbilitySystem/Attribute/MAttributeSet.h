@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
+#include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
 #include "MAttributeSet.generated.h"
 
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
@@ -21,8 +22,8 @@ class MASTERPIECE_API UMAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 	
-	public:
-	UMAttributeSet(){}
+public:
+	UMAttributeSet();
 	
-	UMAbilitySystemComponent* GetAbilitySystemComponent() const;
+	UMAbilitySystemComponent* GetMAbilitySystemComponent() const;
 };

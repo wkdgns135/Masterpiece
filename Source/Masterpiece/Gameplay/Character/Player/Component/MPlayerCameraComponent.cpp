@@ -27,12 +27,9 @@ void UMPlayerCameraComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwner());
-	check(PlayerCharacter);
-
 	InitializeCameraComponents();
 
-	UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent();
+	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
 	check(InputComponent);
 
 	ZoomDelegateHandle = InputComponent->OnZoomTriggered().AddUObject(this, &ThisClass::HandleZoomInput);
@@ -40,12 +37,9 @@ void UMPlayerCameraComponent::BeginPlay()
 
 void UMPlayerCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (PlayerCharacter)
+	if (UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent())
 	{
-		if (UMPlayerInputComponent* InputComponent = PlayerCharacter->GetPlayerInputComponent())
-		{
-			InputComponent->OnZoomTriggered().Remove(ZoomDelegateHandle);
-		}
+		InputComponent->OnZoomTriggered().Remove(ZoomDelegateHandle);
 	}
 
 	Super::EndPlay(EndPlayReason);
@@ -53,6 +47,9 @@ void UMPlayerCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UMPlayerCameraComponent::InitializeCameraComponents()
 {
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	check(PlayerCharacter);
+
 	SpringArm = PlayerCharacter->GetSpringArmComponent();
 	Camera = PlayerCharacter->GetFollowCameraComponent();
 
