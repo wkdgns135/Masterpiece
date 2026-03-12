@@ -10,9 +10,7 @@
 #include "Gameplay/AbilitySystem/Attribute/MCombatAttributeSet.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
-#include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "TimerManager.h"
 
 UMPlayerCombatComponent::UMPlayerCombatComponent()
@@ -20,18 +18,14 @@ UMPlayerCombatComponent::UMPlayerCombatComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-
 void UMPlayerCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	BindInputDelegates();
 }
 
 void UMPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	ClearPendingPrimaryAttack();
-	UnbindInputDelegates();
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -39,6 +33,11 @@ void UMPlayerCombatComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 bool UMPlayerCombatComponent::ExecutePrimaryAttack()
 {
 	return TryActivatePlayerAbilityTag(MGameplayTags::Ability_Attack_Primary);
+}
+
+void UMPlayerCombatComponent::CancelPendingPrimaryAttack()
+{
+	ClearPendingPrimaryAttack();
 }
 
 bool UMPlayerCombatComponent::RequestPrimaryAttack(AActor* TargetActor)
@@ -60,13 +59,8 @@ bool UMPlayerCombatComponent::RequestPrimaryAttack(AActor* TargetActor)
 		return true;
 	}
 
-	FGameplayEventData Payload;
-	Payload.EventTag = MGameplayTags::Event_Attack_Request;
-	Payload.Instigator = PlayerCharacter;
-	Payload.Target = TargetActor;
-
-	SendGameplayEventToPlayer(MGameplayTags::Event_Attack_Request, Payload);
-	return true;
+	ClearPendingPrimaryAttack();
+	return ExecutePrimaryAttack();
 }
 
 bool UMPlayerCombatComponent::IsTargetInAttackRange(const AActor* TargetActor) const
@@ -153,7 +147,7 @@ void UMPlayerCombatComponent::BeginPendingPrimaryAttack(AActor* TargetActor)
 	}
 
 	PendingPrimaryAttackTarget = TargetActor;
-	MovementComponent->IssueMoveToActorCommand(TargetActor);
+	MovementComponent->DoMoveToTargetActor(TargetActor);
 
 	if (!World->GetTimerManager().IsTimerActive(PendingPrimaryAttackTimerHandle))
 	{
@@ -201,77 +195,4 @@ void UMPlayerCombatComponent::UpdatePendingPrimaryAttack()
 	MovementComponent->StopActiveMovement();
 	ClearPendingPrimaryAttack();
 	RequestPrimaryAttack(TargetActor);
-}
-
-void UMPlayerCombatComponent::BindInputDelegates()
-{
-	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
-	if (!InputComponent)
-	{
-		return;
-	}
-
-	MoveCommandDelegateHandle = InputComponent->OnMoveCommandTriggered().AddUObject(this, &ThisClass::HandleMoveCommandTriggered);
-	DodgeDelegateHandle = InputComponent->OnDodgeTriggered().AddUObject(this, &ThisClass::HandleDodgeTriggered);
-	InteractionDelegateHandle = InputComponent->OnInteractionTriggered().AddUObject(this, &ThisClass::HandleInteractionTriggered);
-	SkillSlotDelegateHandle = InputComponent->OnSkillSlotTriggered().AddUObject(this, &ThisClass::HandleSkillSlotTriggered);
-}
-
-void UMPlayerCombatComponent::UnbindInputDelegates()
-{
-	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
-	if (!InputComponent)
-	{
-		return;
-	}
-
-	InputComponent->OnMoveCommandTriggered().Remove(MoveCommandDelegateHandle);
-	InputComponent->OnDodgeTriggered().Remove(DodgeDelegateHandle);
-	InputComponent->OnInteractionTriggered().Remove(InteractionDelegateHandle);
-	InputComponent->OnSkillSlotTriggered().Remove(SkillSlotDelegateHandle);
-}
-
-void UMPlayerCombatComponent::HandleMoveCommandTriggered(const FInputActionValue& Value)
-{
-	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
-	if (!PlayerCharacter)
-	{
-		return;
-	}
-
-	const AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
-	if (!PlayerController)
-	{
-		return;
-	}
-
-	FHitResult CursorHit;
-	if (!PlayerController->TraceCursorToWorld(CursorHit))
-	{
-		return;
-	}
-
-	AActor* HitActor = CursorHit.GetActor();
-	if (!IsValid(HitActor) || !HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
-	{
-		ClearPendingPrimaryAttack();
-		return;
-	}
-
-	RequestPrimaryAttack(HitActor);
-}
-
-void UMPlayerCombatComponent::HandleDodgeTriggered()
-{
-	ExecuteDodge();
-}
-
-void UMPlayerCombatComponent::HandleInteractionTriggered()
-{
-	ExecuteInteraction();
-}
-
-void UMPlayerCombatComponent::HandleSkillSlotTriggered(const int32 SkillSlotIndex)
-{
-	ExecuteSkillSlot(SkillSlotIndex);
 }

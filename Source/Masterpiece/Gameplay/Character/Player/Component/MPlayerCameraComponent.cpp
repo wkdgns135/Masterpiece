@@ -4,16 +4,17 @@
 #include "MPlayerCameraComponent.h"
 
 #include "Camera/CameraComponent.h"
+#include "InputActionValue.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
 UMPlayerCameraComponent::UMPlayerCameraComponent()
 {
 }
 
-void UMPlayerCameraComponent::HandleZoomInput(const float ZoomDelta)
+void UMPlayerCameraComponent::HandleZoomInput(const FInputActionValue& Value)
 {
+	const float ZoomDelta = Value.Get<float>();
 	if (!SpringArm || FMath::IsNearlyZero(ZoomDelta))
 	{
 		return;
@@ -28,20 +29,10 @@ void UMPlayerCameraComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeCameraComponents();
-
-	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
-	check(InputComponent);
-
-	ZoomDelegateHandle = InputComponent->OnZoomTriggered().AddUObject(this, &ThisClass::HandleZoomInput);
 }
 
 void UMPlayerCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent())
-	{
-		InputComponent->OnZoomTriggered().Remove(ZoomDelegateHandle);
-	}
-
 	Super::EndPlay(EndPlayReason);
 }
 

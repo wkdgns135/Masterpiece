@@ -43,16 +43,10 @@ protected:
 
 public:
 	UFUNCTION()
-	void HandleMoveCommand(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void HandleCursorAim(const FInputActionValue& Value);
-
-	UFUNCTION()
-	void IssueMoveToCursorCommand();
+	void DoMoveToCursor();
 
 	UFUNCTION(BlueprintCallable, Category="Movement")
-	void IssueMoveToActorCommand(AActor* TargetActor);
+	void DoMoveToTargetActor(AActor* TargetActor);
 
 	UFUNCTION()
 	void FaceCursorDirection();
@@ -77,6 +71,4 @@ private:
 
 	FTimerHandle RotationTimerHandle;
 
-	FDelegateHandle MoveCommandDelegateHandle;
-	FDelegateHandle CursorAimDelegateHandle;
 };

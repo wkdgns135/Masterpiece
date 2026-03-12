@@ -9,7 +9,7 @@
 class AMCharacterBase;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class MASTERPIECE_API UMCombatComponent : public USceneComponent
+class MASTERPIECE_API UMCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
 

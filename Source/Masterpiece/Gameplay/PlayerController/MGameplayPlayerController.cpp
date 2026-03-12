@@ -3,6 +3,7 @@
 
 #include "MGameplayPlayerController.h"
 
+#include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
 AMGameplayPlayerController::AMGameplayPlayerController()
@@ -24,25 +25,4 @@ void AMGameplayPlayerController::BeginPlay()
 bool AMGameplayPlayerController::TraceCursorToWorld(FHitResult& OutHitResult) const
 {
 	return GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult);
-}
-
-void AMGameplayPlayerController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-	
-	// only add IMCs for local player controllers
-	if (IsLocalPlayerController())
-	{
-		// add the input mapping context
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
-		{
-			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
-			{
-				if (CurrentContext)
-				{
-					Subsystem->AddMappingContext(CurrentContext, 0);
-				}
-			}
-		}
-	}
 }

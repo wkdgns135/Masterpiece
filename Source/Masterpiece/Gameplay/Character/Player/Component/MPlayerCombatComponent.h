@@ -7,7 +7,6 @@
 #include "Gameplay/Character/Component/MCombatComponent.h"
 #include "MPlayerCombatComponent.generated.h"
 
-struct FInputActionValue;
 struct FGameplayEventData;
 class AMPlayerCharacterBase;
 struct FGameplayTag;
@@ -28,6 +27,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
 	bool ExecutePrimaryAttack();
+	
+	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
+	void CancelPendingPrimaryAttack();
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
 	bool RequestPrimaryAttack(AActor* TargetActor);
@@ -50,14 +52,6 @@ private:
 	void ClearPendingPrimaryAttack();
 	void UpdatePendingPrimaryAttack();
 
-	void BindInputDelegates();
-	void UnbindInputDelegates();
-	void HandleMoveCommandTriggered(const FInputActionValue& Value);
-	void HandleDodgeTriggered();
-	void HandleInteractionTriggered();
-	void HandleSkillSlotTriggered(int32 SkillSlotIndex);
-
-private:
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> PendingPrimaryAttackTarget;
 
@@ -69,8 +63,4 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Combat|Attack")
 	float PendingPrimaryAttackUpdateInterval = 0.05f;
 
-	FDelegateHandle MoveCommandDelegateHandle;
-	FDelegateHandle DodgeDelegateHandle;
-	FDelegateHandle InteractionDelegateHandle;
-	FDelegateHandle SkillSlotDelegateHandle;
 };

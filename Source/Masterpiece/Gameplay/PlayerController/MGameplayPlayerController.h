@@ -23,9 +23,5 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	virtual void SetupInputComponent() override;
 	
-	UPROPERTY(EditAnywhere, Category="Input|Input Mappings")
-	TArray<TObjectPtr<UInputMappingContext>> DefaultMappingContexts;
-
 };

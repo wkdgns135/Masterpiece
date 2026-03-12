@@ -10,6 +10,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class AMPlayerCharacterBase;
+struct FInputActionValue;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerCameraComponent : public USceneComponent, public IMPlayerComponentInterface
@@ -20,7 +21,7 @@ public:
 	UMPlayerCameraComponent();
 
 	UFUNCTION()
-	void HandleZoomInput(float ZoomDelta);
+	void HandleZoomInput(const FInputActionValue& Value);
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,8 +31,6 @@ private:
 	void InitializeCameraComponents();
 
 private:
-	FDelegateHandle ZoomDelegateHandle;
-
 	UPROPERTY(EditAnywhere, Category="Camera")
 	float ZoomStep = 100.0f;
 

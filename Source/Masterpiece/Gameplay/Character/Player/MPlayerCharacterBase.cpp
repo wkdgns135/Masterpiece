@@ -3,14 +3,14 @@
 
 #include "MPlayerCharacterBase.h"
 
-#include "EnhancedInputComponent.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Component/MPlayerCameraComponent.h"
+#include "Component/MPlayerComponent.h"
 #include "Component/MPlayerCombatComponent.h"
-#include "Component/MPlayerInputComponent.h"
 #include "Component/MPlayerMovementComponent.h"
+#include "Input/MPlayerInputComponent.h"
 #include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
 #include "Gameplay/AbilitySystem/Ability/MGameplayAbility.h"
 #include "Gameplay/AbilitySystem/Attribute/MCombatAttributeSet.h"
@@ -23,14 +23,11 @@
 AMPlayerCharacterBase::AMPlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPlayerMovementComponent>(CharacterMovementComponentName))
 {
-	PlayerInputComponent = CreateDefaultSubobject<UMPlayerInputComponent>(TEXT("PlayerInputComponent"));
-	PlayerInputComponent->SetupAttachment(RootComponent);
-
 	PlayerCameraComponent = CreateDefaultSubobject<UMPlayerCameraComponent>(TEXT("PlayerCameraComponent"));
 	PlayerCameraComponent->SetupAttachment(RootComponent);
 
+	PlayerComponent = CreateDefaultSubobject<UMPlayerComponent>(TEXT("PlayerComponent"));
 	PlayerCombatComponent = CreateDefaultSubobject<UMPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
-	PlayerCombatComponent->SetupAttachment(RootComponent);
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
@@ -74,6 +71,11 @@ UAbilitySystemComponent* AMPlayerCharacterBase::GetAbilitySystemComponent() cons
 	}
 
 	return nullptr;
+}
+
+UMPlayerInputComponent* AMPlayerCharacterBase::GetPlayerInputComponent() const
+{
+	return Cast<UMPlayerInputComponent>(InputComponent);
 }
 
 UMPlayerMovementComponent* AMPlayerCharacterBase::GetPlayerMovementComponent() const
@@ -121,17 +123,6 @@ void AMPlayerCharacterBase::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	InitializeAbilitySystem();
-}
-
-void AMPlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* InInputComponent)
-{
-	Super::SetupPlayerInputComponent(InInputComponent);
-	
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InInputComponent))
-	{
-		check(this->PlayerInputComponent);
-		this->PlayerInputComponent->BindInputActions(EnhancedInputComponent);
-	}
 }
 
 void AMPlayerCharacterBase::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)

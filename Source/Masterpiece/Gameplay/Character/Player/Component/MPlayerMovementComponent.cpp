@@ -7,45 +7,22 @@
 #include "GameFramework/Controller.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
+#include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "TimerManager.h"
 
 void UMPlayerMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent();
-	check(InputComponent);
-
-	MoveCommandDelegateHandle = InputComponent->OnMoveCommandTriggered().AddUObject(this, &ThisClass::HandleMoveCommand);
-	CursorAimDelegateHandle = InputComponent->OnCursorAimTriggered().AddUObject(this, &ThisClass::HandleCursorAim);
 }
 
 void UMPlayerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	StopRotationInterpolationTimer();
-
-	if (UMPlayerInputComponent* InputComponent = GetMPlayerInputComponent())
-	{
-		InputComponent->OnMoveCommandTriggered().Remove(MoveCommandDelegateHandle);
-		InputComponent->OnCursorAimTriggered().Remove(CursorAimDelegateHandle);
-	}
-
 	Super::EndPlay(EndPlayReason);
 }
 
-void UMPlayerMovementComponent::HandleMoveCommand(const FInputActionValue& Value)
-{
-	IssueMoveToCursorCommand();
-}
-
-void UMPlayerMovementComponent::HandleCursorAim(const FInputActionValue& Value)
-{
-	FaceCursorDirection();
-}
-
-void UMPlayerMovementComponent::IssueMoveToCursorCommand()
+void UMPlayerMovementComponent::DoMoveToCursor()
 {
 	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
@@ -73,7 +50,7 @@ void UMPlayerMovementComponent::IssueMoveToCursorCommand()
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(PlayerController, Destination);
 }
 
-void UMPlayerMovementComponent::IssueMoveToActorCommand(AActor* TargetActor)
+void UMPlayerMovementComponent::DoMoveToTargetActor(AActor* TargetActor)
 {
 	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	if (!PlayerCharacter || !IsValid(TargetActor))

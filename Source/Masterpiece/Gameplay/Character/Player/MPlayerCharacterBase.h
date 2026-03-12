@@ -15,6 +15,7 @@ class UMAbilitySystemComponent;
 class UMCombatAttributeSet;
 class UMGameplayAbility;
 class UMPlayerCameraComponent;
+class UMPlayerComponent;
 class UMPlayerAttributeSet;
 class UMPlayerCombatComponent;
 class UMPlayerInputComponent;
@@ -36,7 +37,6 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-	virtual void SetupPlayerInputComponent(UInputComponent* InInputComponent) override;
 	
 	// MDamageable interface
 	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
@@ -49,14 +49,14 @@ protected:
 protected:
 	/** 플레이어 전용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UMPlayerInputComponent> PlayerInputComponent;
+	TObjectPtr<UMPlayerComponent> PlayerComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMPlayerCameraComponent> PlayerCameraComponent;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMPlayerCombatComponent> PlayerCombatComponent;
-
+	
 	/** 공용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USpringArmComponent> SpringArmComponent;
@@ -92,16 +92,17 @@ public:
 		check(PlayerCameraComponent);
 		return PlayerCameraComponent;
 	}
-	FORCEINLINE UMPlayerInputComponent* GetPlayerInputComponent() const
+	FORCEINLINE UMPlayerComponent* GetPlayerComponent() const
 	{
-		check(PlayerInputComponent);
-		return PlayerInputComponent;
+		check(PlayerComponent);
+		return PlayerComponent;
 	}
 	FORCEINLINE UMPlayerCombatComponent* GetPlayerCombatComponent() const
 	{
 		check(PlayerCombatComponent);
 		return PlayerCombatComponent;
 	}
+	UMPlayerInputComponent* GetPlayerInputComponent() const;
 	UMPlayerMovementComponent* GetPlayerMovementComponent() const;
 	UMCombatAttributeSet* GetCombatAttributeSet() const;
 	UMPlayerAttributeSet* GetPlayerAttributeSet() const;

@@ -4,7 +4,7 @@
 #include "MPlayerComponentInterface.h"
 
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
-#include "Gameplay/Character/Player/Component/MPlayerInputComponent.h"
+#include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "Gameplay/PlayerState/MGameplayPlayerState.h"
 
