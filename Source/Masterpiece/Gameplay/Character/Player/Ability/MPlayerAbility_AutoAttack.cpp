@@ -6,6 +6,7 @@
 #include "Gameplay/MGameplayTags.h"
 #include "Gameplay/Character/Player/Component/MPlayerCombatComponent.h"
 #include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
 
 UMPlayerAbility_AutoAttack::UMPlayerAbility_AutoAttack()
 {
@@ -14,7 +15,7 @@ UMPlayerAbility_AutoAttack::UMPlayerAbility_AutoAttack()
 	bRetriggerInstancedAbility = true;
 	
 	FAbilityTriggerData TriggerData;
-	TriggerData.TriggerTag = MGameplayTags::Event_Attack_Request;
+	TriggerData.TriggerTag = MGameplayTags::Event_AutoAttack_Request;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
@@ -64,11 +65,7 @@ void UMPlayerAbility_AutoAttack::ExecuteAutoAttackStep()
 		MovementComponent->StopNavigationMovement();
 
 		WaitForGameplayTagToBeAddedThenRemoved(MGameplayTags::State_Attacking, this, &ThisClass::HandleAttackFinished);
-		if (!CombatComponent->ExecutePrimaryAttack())
-		{
-			StopWaitingForGameplayTag(MGameplayTags::State_Attacking);
-			EndAbilityAsCancelled();
-		}
+		CombatComponent->ExecutePrimaryAttack(CurrentTargetActor);
 		return;
 	}
 
@@ -91,6 +88,8 @@ void UMPlayerAbility_AutoAttack::HandleMovementFinished(const bool bReachedTarge
 
 void UMPlayerAbility_AutoAttack::HandleAttackFinished()
 {
-	//TODO: 공격속도 반영 및 AttackReady State 반영
-	ExecuteAutoAttackStep();
+	// TODO : 공격 루프 수정 근데
+	auto* Task = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, MGameplayTags::State_AttackReady);
+	Task->Added.AddDynamic(this, &ThisClass::ExecuteAutoAttackStep);
+	Task->ReadyForActivation();
 }

@@ -21,10 +21,19 @@ class MASTERPIECE_API UMPlayerAbility : public UMGameplayAbility
 	GENERATED_BODY()
 	
 public:
+	UFUNCTION( BlueprintCallable, Category="Ability")
 	AMPlayerCharacterBase* GetMPlayerCharacter() const;
+	
+	UFUNCTION( BlueprintCallable, Category="Ability")
 	AMGameplayPlayerController* GetMGameplayPlayerController() const;
+	
+	UFUNCTION( BlueprintCallable, Category="Ability")
 	UMPlayerMovementComponent* GetMPlayerMovementComponent() const;
+	
+	UFUNCTION( BlueprintCallable, Category="Ability")
 	UMPlayerCombatComponent* GetMPlayerCombatComponent() const;
+	
+	UFUNCTION( BlueprintCallable, Category="Ability")
 	bool SendGameplayEventToOwner(const FGameplayTag& EventTag, const FGameplayEventData& Payload) const;
 	
 };

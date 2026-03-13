@@ -39,17 +39,20 @@ class MASTERPIECE_API UMPlayerMovementComponent : public UCharacterMovementCompo
 public:
 	UMPlayerMovementComponent();
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Movement|Navigation")
 	void DoMoveToActor(const AActor* TargetActor, const float AcceptanceRadius = 0.0f);
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Movement|Navigation")
 	void DoMoveToLocation(const FVector& Destination);
 	
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="Movement|Navigation")
 	void StopNavigationMovement();
 	
-	UFUNCTION()
-	void FaceCursorDirection();
+	UFUNCTION(BlueprintCallable, Category="Movement|Rotation")
+	void FaceTargetLocation(const FVector& TargetLocation);
+	
+	UFUNCTION(BlueprintCallable, Category="Movement|Rotation")
+	void FaceTargetActor(const AActor* TargetActor);
 	
 protected:
 	virtual void BeginPlay() override;

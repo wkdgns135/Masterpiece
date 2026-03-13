@@ -62,7 +62,7 @@ void UMPlayerMovementComponent::StopNavigationMovement()
 	OnNavigationMoveFinishedDelegate.Broadcast(false);
 }
 
-void UMPlayerMovementComponent::FaceCursorDirection()
+void UMPlayerMovementComponent::FaceTargetLocation(const FVector& TargetLocation)
 {
 	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	const AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
@@ -71,13 +71,7 @@ void UMPlayerMovementComponent::FaceCursorDirection()
 		return;
 	}
 
-	FHitResult CursorHit;
-	if (!PlayerController->TraceCursorToWorld(CursorHit))
-	{
-		return;
-	}
-
-	FVector Direction = CursorHit.ImpactPoint - PlayerCharacter->GetActorLocation();
+	FVector Direction = TargetLocation - PlayerCharacter->GetActorLocation();
 	Direction.Z = 0.0f;
 	if (!Direction.IsNearlyZero())
 	{
@@ -92,6 +86,11 @@ void UMPlayerMovementComponent::FaceCursorDirection()
 		bHasDesiredRotation = true;
 		bIsRotating = true;
 	}
+}
+
+void UMPlayerMovementComponent::FaceTargetActor(const AActor* TargetActor)
+{
+	FaceTargetLocation(TargetActor->GetActorLocation());
 }
 
 void UMPlayerMovementComponent::UpdateNavigation()

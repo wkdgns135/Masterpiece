@@ -75,9 +75,9 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 	AActor* HitActor = CursorHit.GetActor();
 	if (IsValid(HitActor) && HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
 	{
-		Payload.EventTag = MGameplayTags::Event_Attack_Request;
+		Payload.EventTag = MGameplayTags::Event_AutoAttack_Request;
 		Payload.Target = HitActor;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerCharacter, MGameplayTags::Event_Attack_Request, Payload);
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerCharacter, MGameplayTags::Event_AutoAttack_Request, Payload);
 		return;
 	}
 
@@ -86,13 +86,7 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 
 void UMPlayerComponent::HandleCursorAim(const FInputActionValue& Value)
 {
-	if (AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter())
-	{
-		if (UMPlayerMovementComponent* MovementComponent = PlayerCharacter->GetPlayerMovementComponent())
-		{
-			MovementComponent->FaceCursorDirection();
-		}
-	}
+
 }
 
 void UMPlayerComponent::HandleZoom(const FInputActionValue& Value)

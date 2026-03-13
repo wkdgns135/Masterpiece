@@ -24,26 +24,20 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	bool ExecutePrimaryAttack();
+	void ExecutePrimaryAttack(const AActor* TargetActor);
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Attack")
 	bool CanPrimaryAttack(const AActor* TargetActor) const;
-	
-	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	void CancelPendingPrimaryAttack();
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	bool ExecuteDodge();
+	void ExecuteDodge();
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	bool ExecuteInteraction();
+	void ExecuteInteraction();
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	bool ExecuteSkillSlot(int32 SkillSlotIndex);
+	void ExecuteSkillSlot(int32 SkillSlotIndex);
 	
 	float GetPlayerAttackRange() const;
 	
-private:
-	bool TryActivatePlayerAbilityTag(const FGameplayTag& AbilityTag) const;
-	void CancelPlayerAbilityTag(const FGameplayTag& AbilityTag) const;
 };

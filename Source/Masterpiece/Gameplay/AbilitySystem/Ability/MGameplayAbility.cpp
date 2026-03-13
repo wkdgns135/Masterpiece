@@ -174,7 +174,7 @@ void UMGameplayAbility::StopWaitingForGameplayTag(const FGameplayTag& GameplayTa
 	{
 		return;
 	}
-
+	
 	UAbilitySystemComponent* AbilitySystemComponent = GetOwnerAbilitySystemComponent();
 	const FMGameplayTagCycleWaiter Waiter = GameplayTagCycleWaiters[WaiterIndex];
 	if (AbilitySystemComponent)
