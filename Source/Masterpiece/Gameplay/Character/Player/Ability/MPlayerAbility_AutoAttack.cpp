@@ -5,14 +5,22 @@
 
 #include "Gameplay/MGameplayTags.h"
 #include "Gameplay/Character/Player/Component/MPlayerCombatComponent.h"
+#include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
 
 UMPlayerAbility_AutoAttack::UMPlayerAbility_AutoAttack()
 {
+	AbilityTag = MGameplayTags::Ability_Attack_Auto;
+	AbilityTags.AddTag(MGameplayTags::Ability_Attack_Auto);
+	bRetriggerInstancedAbility = true;
+	
 	FAbilityTriggerData TriggerData;
 	TriggerData.TriggerTag = MGameplayTags::Event_Attack_Request;
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	AbilityTriggers.Add(TriggerData);
 
+	ActivationOwnedTags.AddTag(MGameplayTags::State_AutoAttacking);
+	CancelAbilitiesWithTag.AddTag(MGameplayTags::Ability_Movement);
+	
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Stunned);
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Dead);
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Interacting);
@@ -22,21 +30,67 @@ UMPlayerAbility_AutoAttack::UMPlayerAbility_AutoAttack()
 void UMPlayerAbility_AutoAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                                  const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
-		return;
-	}
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	UMPlayerCombatComponent* CombatComponent = GetMPlayerCombatComponent();
-	AActor* TargetActor = TriggerEventData ? const_cast<AActor*>(TriggerEventData->Target.Get()) : nullptr;
-	const bool bSucceeded = CombatComponent && IsValid(TargetActor) && CombatComponent->RequestPrimaryAttack(TargetActor);
-
-	EndAbility(Handle, ActorInfo, ActivationInfo, true, !bSucceeded);
+	CurrentTargetActor = TriggerEventData ? TriggerEventData->Target : nullptr;
+	ExecuteAutoAttackStep();
 }
 
 void UMPlayerAbility_AutoAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                             const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	StopWaitingForGameplayTag(MGameplayTags::State_Attacking);
+	if (UMPlayerMovementComponent* MovementComponent = GetMPlayerMovementComponent())
+	{
+		MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
+		MovementComponent->StopNavigationMovement();
+	}
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UMPlayerAbility_AutoAttack::ExecuteAutoAttackStep()
+{
+	UMPlayerCombatComponent* CombatComponent = GetMPlayerCombatComponent();
+	UMPlayerMovementComponent* MovementComponent = GetMPlayerMovementComponent();
+	if (!CombatComponent || !MovementComponent || !IsValid(CurrentTargetActor))
+	{
+		EndAbilityAsCancelled();
+		return;
+	}
+
+	if (CombatComponent->CanPrimaryAttack(CurrentTargetActor))
+	{
+		MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
+		MovementComponent->StopNavigationMovement();
+
+		WaitForGameplayTagToBeAddedThenRemoved(MGameplayTags::State_Attacking, this, &ThisClass::HandleAttackFinished);
+		if (!CombatComponent->ExecutePrimaryAttack())
+		{
+			StopWaitingForGameplayTag(MGameplayTags::State_Attacking);
+			EndAbilityAsCancelled();
+		}
+		return;
+	}
+
+	// 타겟 액터로 이동
+	MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
+	MovementComponent->OnNavigationMoveFinishedDelegate.AddUObject(this, &ThisClass::HandleMovementFinished);
+	MovementComponent->DoMoveToActor(CurrentTargetActor, CombatComponent->GetPlayerAttackRange() - 1.0f);
+}
+
+void UMPlayerAbility_AutoAttack::HandleMovementFinished(const bool bReachedTarget)
+{
+	if (!bReachedTarget)
+	{
+		EndAbilityAsCancelled();
+		return;
+	}
+
+	ExecuteAutoAttackStep();
+}
+
+void UMPlayerAbility_AutoAttack::HandleAttackFinished()
+{
+	//TODO: 공격속도 반영 및 AttackReady State 반영
+	ExecuteAutoAttackStep();
 }

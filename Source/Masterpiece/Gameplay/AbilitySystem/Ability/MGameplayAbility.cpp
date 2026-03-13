@@ -4,7 +4,6 @@
 
 #include "AbilitySystemComponent.h"
 #include "Cost/MAbilityCost.h"
-#include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 
 UMGameplayAbility::UMGameplayAbility()
 {
@@ -54,6 +53,13 @@ void UMGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const
 
 		AdditionalCost->ApplyCost(this);
 	}
+}
+
+void UMGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	const FGameplayAbilityActivationInfo ActivationInfo, const bool bReplicateEndAbility, const bool bWasCancelled)
+{
+	ClearGameplayTagCycleWaiters();
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 UAbilitySystemComponent* UMGameplayAbility::GetOwnerAbilitySystemComponent() const
@@ -121,4 +127,133 @@ void UMGameplayAbility::EndAbilityAsCancelled(const bool bReplicateEndAbility)
 	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, true);
+}
+
+void UMGameplayAbility::WaitForGameplayTagToBeAddedThenRemoved(const FGameplayTag& GameplayTag, TFunction<void()> OnRemoved)
+{
+	UAbilitySystemComponent* AbilitySystemComponent = GetOwnerAbilitySystemComponent();
+	if (!AbilitySystemComponent || !GameplayTag.IsValid() || !OnRemoved)
+	{
+		return;
+	}
+
+	StopWaitingForGameplayTag(GameplayTag);
+
+	FMGameplayTagCycleWaiter& Waiter = GameplayTagCycleWaiters.AddDefaulted_GetRef();
+	Waiter.GameplayTag = GameplayTag;
+	Waiter.OnRemoved = MoveTemp(OnRemoved);
+
+	const int32 WaiterIndex = GameplayTagCycleWaiters.Num() - 1;
+	if (AbilitySystemComponent->HasMatchingGameplayTag(GameplayTag))
+	{
+		BindGameplayTagRemovedWaiter(WaiterIndex);
+		return;
+	}
+
+	Waiter.AddedHandle = AbilitySystemComponent
+		->RegisterGameplayTagEvent(GameplayTag, EGameplayTagEventType::NewOrRemoved)
+		.AddLambda([this, GameplayTag](const FGameplayTag, const int32 NewCount)
+		{
+			if (NewCount <= 0)
+			{
+				return;
+			}
+
+			const int32 FoundIndex = FindGameplayTagCycleWaiterIndex(GameplayTag);
+			if (FoundIndex != INDEX_NONE)
+			{
+				BindGameplayTagRemovedWaiter(FoundIndex);
+			}
+		});
+}
+
+void UMGameplayAbility::StopWaitingForGameplayTag(const FGameplayTag& GameplayTag)
+{
+	const int32 WaiterIndex = FindGameplayTagCycleWaiterIndex(GameplayTag);
+	if (WaiterIndex == INDEX_NONE)
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* AbilitySystemComponent = GetOwnerAbilitySystemComponent();
+	const FMGameplayTagCycleWaiter Waiter = GameplayTagCycleWaiters[WaiterIndex];
+	if (AbilitySystemComponent)
+	{
+		if (Waiter.AddedHandle.IsValid())
+		{
+			AbilitySystemComponent
+				->RegisterGameplayTagEvent(Waiter.GameplayTag, EGameplayTagEventType::NewOrRemoved)
+				.Remove(Waiter.AddedHandle);
+		}
+		if (Waiter.RemovedHandle.IsValid())
+		{
+			AbilitySystemComponent
+				->RegisterGameplayTagEvent(Waiter.GameplayTag, EGameplayTagEventType::NewOrRemoved)
+				.Remove(Waiter.RemovedHandle);
+		}
+	}
+
+	GameplayTagCycleWaiters.RemoveAt(WaiterIndex);
+}
+
+int32 UMGameplayAbility::FindGameplayTagCycleWaiterIndex(const FGameplayTag& GameplayTag) const
+{
+	return GameplayTagCycleWaiters.IndexOfByPredicate([&GameplayTag](const FMGameplayTagCycleWaiter& Waiter)
+	{
+		return Waiter.GameplayTag == GameplayTag;
+	});
+}
+
+void UMGameplayAbility::BindGameplayTagRemovedWaiter(const int32 WaiterIndex)
+{
+	UAbilitySystemComponent* AbilitySystemComponent = GetOwnerAbilitySystemComponent();
+	if (!AbilitySystemComponent || !GameplayTagCycleWaiters.IsValidIndex(WaiterIndex))
+	{
+		return;
+	}
+
+	FMGameplayTagCycleWaiter& Waiter = GameplayTagCycleWaiters[WaiterIndex];
+	if (Waiter.AddedHandle.IsValid())
+	{
+		AbilitySystemComponent
+			->RegisterGameplayTagEvent(Waiter.GameplayTag, EGameplayTagEventType::NewOrRemoved)
+			.Remove(Waiter.AddedHandle);
+		Waiter.AddedHandle.Reset();
+	}
+
+	if (Waiter.RemovedHandle.IsValid())
+	{
+		return;
+	}
+
+	Waiter.RemovedHandle = AbilitySystemComponent
+		->RegisterGameplayTagEvent(Waiter.GameplayTag, EGameplayTagEventType::NewOrRemoved)
+		.AddLambda([this, GameplayTag = Waiter.GameplayTag](const FGameplayTag, const int32 NewCount)
+		{
+			if (NewCount != 0)
+			{
+				return;
+			}
+
+			const int32 FoundIndex = FindGameplayTagCycleWaiterIndex(GameplayTag);
+			if (FoundIndex == INDEX_NONE)
+			{
+				return;
+			}
+
+			TFunction<void()> Callback = MoveTemp(GameplayTagCycleWaiters[FoundIndex].OnRemoved);
+			StopWaitingForGameplayTag(GameplayTag);
+			if (Callback)
+			{
+				Callback();
+			}
+		});
+}
+
+void UMGameplayAbility::ClearGameplayTagCycleWaiters()
+{
+	while (GameplayTagCycleWaiters.Num() > 0)
+	{
+		StopWaitingForGameplayTag(GameplayTagCycleWaiters[0].GameplayTag);
+	}
 }

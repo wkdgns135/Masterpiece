@@ -27,48 +27,66 @@ struct FMRotationSettings
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
 	float RotationStartThresholdDeg = 2.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Rotation")
-	float RotationUpdateIntervalSec = 0.016f;
 };
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnNavigationMoveFinished, const bool);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerMovementComponent : public UCharacterMovementComponent, public IMPlayerComponentInterface
 {
 	GENERATED_BODY()
 
+public:
+	UMPlayerMovementComponent();
+	
+	UFUNCTION()
+	void DoMoveToActor(const AActor* TargetActor, const float AcceptanceRadius = 0.0f);
+	
+	UFUNCTION()
+	void DoMoveToLocation(const FVector& Destination);
+	
+	UFUNCTION()
+	void StopNavigationMovement();
+	
+	UFUNCTION()
+	void FaceCursorDirection();
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+private:
+	// 네비게이션
+	void UpdateNavigation();
+	bool CheckDistanceFromLocation(const FVector& TargetLocation);
+	
+	// 회전
+	void UpdateRotation();
 
 public:
-	UFUNCTION()
-	void DoMoveToCursor();
-
-	UFUNCTION(BlueprintCallable, Category="Movement")
-	void DoMoveToTargetActor(AActor* TargetActor);
-
-	UFUNCTION()
-	void FaceCursorDirection();
+	FOnNavigationMoveFinished OnNavigationMoveFinishedDelegate;
 
 private:
-	void StartRotationInterpolationTimer();
-	void StopRotationInterpolationTimer();
-	void UpdateRotationWithTimer();
-
-private:
+	// 네비게이션 관련 변수
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Navigation")
+	float DefaultAcceptanceRadius = 40.0f;
+	
+	UPROPERTY()
+	TWeakObjectPtr<const AActor> CurrentTargetActor;
+	
+	bool bIsNavigating = false;
+	float CurrentAcceptanceRadius = 0.0f;
+	FVector CurrentTargetLocation;
+	
+	// 회전 관련 변수
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Rotation", meta=(ShowOnlyInnerProperties))
 	FMRotationSettings RotationSettings;
-
-	UPROPERTY(Transient)
+	
 	FRotator DesiredRotation = FRotator::ZeroRotator;
-
-	UPROPERTY(Transient)
 	float LastRotationUpdateTimeSec = 0.0f;
-
-	UPROPERTY(Transient)
 	bool bHasDesiredRotation = false;
-
+	bool bIsRotating = false;
 	FTimerHandle RotationTimerHandle;
 
 };

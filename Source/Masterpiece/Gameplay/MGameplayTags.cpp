@@ -10,7 +10,10 @@ namespace MGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Dodge, "Input.Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Action_Interaction, "Input.Action.Interaction");
 
+	UE_DEFINE_GAMEPLAY_TAG(State_AttackReady, "State.AttackReady");
 	UE_DEFINE_GAMEPLAY_TAG(State_Attacking, "State.Attacking");
+	UE_DEFINE_GAMEPLAY_TAG(State_AutoAttacking, "State.AutoAttacking");
+	UE_DEFINE_GAMEPLAY_TAG(State_Moving, "State.Moving");
 	UE_DEFINE_GAMEPLAY_TAG(State_Casting, "State.Casting");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dodging, "State.Dodging");
 	UE_DEFINE_GAMEPLAY_TAG(State_Interacting, "State.Interacting");
@@ -19,8 +22,10 @@ namespace MGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(State_ComboWindow_Open, "State.ComboWindow.Open");
 
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack, "Ability.Attack");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Auto, "Ability.Attack.Auto");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Primary, "Ability.Attack.Primary");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Attack_Combo, "Ability.Attack.Combo");
+	UE_DEFINE_GAMEPLAY_TAG(Ability_Movement, "Ability.Movement");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill, "Ability.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_Q, "Ability.Skill.Q");
 	UE_DEFINE_GAMEPLAY_TAG(Ability_Skill_W, "Ability.Skill.W");

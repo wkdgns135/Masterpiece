@@ -22,15 +22,3 @@ AMCharacterBase* UMCombatComponent::GetOwnerCharacter() const
 {
 	return OwnerCharacter;
 }
-
-float UMCombatComponent::GetDistanceToTarget(const AActor* TargetActor) const
-{
-	const AActor* OwnerActor = GetOwner();
-	if (!OwnerActor || !IsValid(TargetActor))
-	{
-		return TNumericLimits<float>::Max();
-	}
-
-	return OwnerActor->GetDistanceTo(TargetActor);
-}
-

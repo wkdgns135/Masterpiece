@@ -5,11 +5,16 @@
 
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "GameFramework/Controller.h"
-#include "Gameplay/Interface/MDamageable.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "TimerManager.h"
+
+UMPlayerMovementComponent::UMPlayerMovementComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
 
 void UMPlayerMovementComponent::BeginPlay()
 {
@@ -18,54 +23,43 @@ void UMPlayerMovementComponent::BeginPlay()
 
 void UMPlayerMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	StopRotationInterpolationTimer();
 	Super::EndPlay(EndPlayReason);
 }
 
-void UMPlayerMovementComponent::DoMoveToCursor()
+void UMPlayerMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
-	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
-	if (!PlayerCharacter || !PlayerController)
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	
+	if (bIsNavigating)
 	{
-		return;
+		UpdateNavigation();
 	}
-
-
-	FHitResult CursorHit;
-	if (!PlayerController->TraceCursorToWorld(CursorHit))
+	
+	if (bIsRotating)
 	{
-		return;
+		UpdateRotation();
 	}
-
-	if (const AActor* HitActor = CursorHit.GetActor(); IsValid(HitActor) && HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
-	{
-		return;
-	}
-
-	FVector Destination = CursorHit.ImpactPoint;
-	Destination.Z = PlayerCharacter->GetActorLocation().Z;
-
-	FaceCursorDirection();
-	UAIBlueprintHelperLibrary::SimpleMoveToLocation(PlayerController, Destination);
 }
 
-void UMPlayerMovementComponent::DoMoveToTargetActor(AActor* TargetActor)
+void UMPlayerMovementComponent::DoMoveToActor(const AActor* TargetActor, const float AcceptanceRadius)
 {
-	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
-	if (!PlayerCharacter || !IsValid(TargetActor))
-	{
-		return;
-	}
+	CurrentTargetActor = MakeWeakObjectPtr(TargetActor);
+	CurrentAcceptanceRadius = AcceptanceRadius;
+	bIsNavigating = true;
+}
 
-	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
-	if (!PlayerController)
-	{
-		return;
-	}
+void UMPlayerMovementComponent::DoMoveToLocation(const FVector &Destination)
+{
+	CurrentTargetLocation = Destination;
+	CurrentAcceptanceRadius = DefaultAcceptanceRadius;
+	bIsNavigating = true;
+}
 
-	FaceCursorDirection();
-	UAIBlueprintHelperLibrary::SimpleMoveToActor(PlayerController, TargetActor);
+void UMPlayerMovementComponent::StopNavigationMovement()
+{
+	CurrentTargetActor.Reset();
+	bIsNavigating = false;
+	OnNavigationMoveFinishedDelegate.Broadcast(false);
 }
 
 void UMPlayerMovementComponent::FaceCursorDirection()
@@ -96,57 +90,64 @@ void UMPlayerMovementComponent::FaceCursorDirection()
 
 		DesiredRotation = NewDesiredRotation;
 		bHasDesiredRotation = true;
-		StartRotationInterpolationTimer();
+		bIsRotating = true;
 	}
 }
 
-void UMPlayerMovementComponent::StartRotationInterpolationTimer()
+void UMPlayerMovementComponent::UpdateNavigation()
 {
-	UWorld* World = GetWorld();
-	if (!World)
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	if (!PlayerCharacter)
 	{
+		bIsNavigating = false;
 		return;
 	}
-
-	if (!World->GetTimerManager().IsTimerActive(RotationTimerHandle))
+	
+	if (CurrentTargetActor.IsValid())
 	{
-		LastRotationUpdateTimeSec = World->GetTimeSeconds();
-		World->GetTimerManager().SetTimer(
-			RotationTimerHandle,
-			this,
-			&ThisClass::UpdateRotationWithTimer,
-			RotationSettings.RotationUpdateIntervalSec,
-			true);
+		if (CheckDistanceFromLocation(CurrentTargetActor->GetActorLocation()))
+		{
+			bIsNavigating = false;
+			OnNavigationMoveFinishedDelegate.Broadcast(true);
+			CurrentTargetActor.Reset();
+			return;
+		}
+		UAIBlueprintHelperLibrary::SimpleMoveToActor(PlayerCharacter->GetController(), CurrentTargetActor.Get());
+	} 
+	else
+	{
+		if (CheckDistanceFromLocation(CurrentTargetLocation))
+		{
+			bIsNavigating = false;
+			OnNavigationMoveFinishedDelegate.Broadcast(true);
+			return;
+		}
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(PlayerCharacter->GetController(), CurrentTargetLocation);
 	}
 }
 
-void UMPlayerMovementComponent::StopRotationInterpolationTimer()
+bool UMPlayerMovementComponent::CheckDistanceFromLocation(const FVector& TargetLocation)
 {
-	if (UWorld* World = GetWorld())
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	if (!PlayerCharacter)
 	{
-		World->GetTimerManager().ClearTimer(RotationTimerHandle);
+		return false;
 	}
 
-	bHasDesiredRotation = false;
+	const float Distance = FVector::Dist2D(PlayerCharacter->GetActorLocation(), TargetLocation);
+	return Distance <= CurrentAcceptanceRadius;
 }
 
-void UMPlayerMovementComponent::UpdateRotationWithTimer()
+void UMPlayerMovementComponent::UpdateRotation()
 {
 	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	if (!PlayerCharacter || !bHasDesiredRotation)
 	{
-		StopRotationInterpolationTimer();
+		bIsRotating = false;
 		return;
 	}
-
-	UWorld* World = GetWorld();
-	if (!World)
-	{
-		StopRotationInterpolationTimer();
-		return;
-	}
-
-	const float CurrentTimeSec = World->GetTimeSeconds();
+	
+	const float CurrentTimeSec = GetWorld()->GetTimeSeconds();
 	const float DeltaTimeSec = FMath::Max(CurrentTimeSec - LastRotationUpdateTimeSec, KINDA_SMALL_NUMBER);
 	LastRotationUpdateTimeSec = CurrentTimeSec;
 
@@ -157,7 +158,7 @@ void UMPlayerMovementComponent::UpdateRotationWithTimer()
 	if (DeltaYawAbs <= RotationSettings.RotationCompleteThresholdDeg)
 	{
 		PlayerCharacter->SetActorRotation(DesiredRotation);
-		StopRotationInterpolationTimer();
+		bIsRotating = false;
 		return;
 	}
 

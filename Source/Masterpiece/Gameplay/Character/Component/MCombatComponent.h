@@ -23,9 +23,6 @@ public:
 	UFUNCTION(BlueprintPure, Category="Combat")
 	AMCharacterBase* GetOwnerCharacter() const;
 
-	UFUNCTION(BlueprintPure, Category="Combat")
-	float GetDistanceToTarget(const AActor* TargetActor) const;
-
 private:
 	UPROPERTY(Transient)
 	TObjectPtr<AMCharacterBase> OwnerCharacter;

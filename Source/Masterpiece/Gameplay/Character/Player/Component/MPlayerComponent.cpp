@@ -4,6 +4,7 @@
 #include "MPlayerComponent.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemGlobals.h"
 #include "EnhancedInputComponent.h"
 #include "Gameplay/MGameplayTags.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
@@ -54,8 +55,7 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 {
 	AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController();
-	UMPlayerCombatComponent* CombatComponent = PlayerCharacter ? PlayerCharacter->GetPlayerCombatComponent() : nullptr;
-	if (!PlayerCharacter || !PlayerController || !CombatComponent)
+	if (!PlayerCharacter || !PlayerController)
 	{
 		return;
 	}
@@ -69,7 +69,8 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 	FGameplayEventData Payload;
 	Payload.EventTag = MGameplayTags::Event_Move_Request;
 	Payload.Instigator = PlayerCharacter;
-	Payload.Target = CursorHit.GetActor();
+	Payload.ContextHandle = UAbilitySystemGlobals::Get().AllocGameplayEffectContext();
+	Payload.ContextHandle.AddHitResult(CursorHit);
 
 	AActor* HitActor = CursorHit.GetActor();
 	if (IsValid(HitActor) && HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
@@ -80,7 +81,6 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 		return;
 	}
 
-	CombatComponent->CancelPendingPrimaryAttack();
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerCharacter, MGameplayTags::Event_Move_Request, Payload);
 }
 
@@ -151,7 +151,7 @@ void UMPlayerComponent::BindInputActions()
 
 	if (InputConfig->MoveCommandAction)
 	{
-		MoveCommandBindingHandle = InputComponent->BindAction(InputConfig->MoveCommandAction, ETriggerEvent::Triggered, this, &ThisClass::HandleRightClickCommand).GetHandle();
+		MoveCommandBindingHandle = InputComponent->BindAction(InputConfig->MoveCommandAction, ETriggerEvent::Started, this, &ThisClass::HandleRightClickCommand).GetHandle();
 	}
 	if (InputConfig->CursorAimAction)
 	{
