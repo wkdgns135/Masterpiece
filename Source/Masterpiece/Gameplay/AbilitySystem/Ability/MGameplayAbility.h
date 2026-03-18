@@ -8,13 +8,6 @@
 #include "GameplayTagContainer.h"
 #include "MGameplayAbility.generated.h"
 
-struct FMGameplayTagCycleWaiter
-{
-	FGameplayTag GameplayTag;
-	FDelegateHandle AddedHandle;
-	FDelegateHandle RemovedHandle;
-	TFunction<void()> OnRemoved;
-};
 
 UCLASS(Abstract, Blueprintable)
 class MASTERPIECE_API UMGameplayAbility : public UGameplayAbility
@@ -60,24 +53,6 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="Ability|Common")
 	void EndAbilityAsCancelled(bool bReplicateEndAbility = true);
 
-	void WaitForGameplayTagToBeAddedThenRemoved(const FGameplayTag& GameplayTag, TFunction<void()> OnRemoved);
-
-	template <typename UserClass>
-	void WaitForGameplayTagToBeAddedThenRemoved(const FGameplayTag& GameplayTag, UserClass* Object, void (UserClass::*Method)())
-	{
-		if (!Object || !Method)
-		{
-			return;
-		}
-
-		WaitForGameplayTagToBeAddedThenRemoved(GameplayTag, [Object, Method]()
-		{
-			(Object->*Method)();
-		});
-	}
-
-	void StopWaitingForGameplayTag(const FGameplayTag& GameplayTag);
-
 protected:
 	// Ability identity tag used for ASC activation lookup.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|Identity")
@@ -87,10 +62,4 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Instanced, Category="Ability|Cost")
 	TArray<TObjectPtr<class UMAbilityCost>> AdditionalCosts;
 
-private:
-	int32 FindGameplayTagCycleWaiterIndex(const FGameplayTag& GameplayTag) const;
-	void BindGameplayTagRemovedWaiter(int32 WaiterIndex);
-	void ClearGameplayTagCycleWaiters();
-
-	TArray<FMGameplayTagCycleWaiter> GameplayTagCycleWaiters;
 };

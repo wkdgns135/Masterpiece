@@ -7,6 +7,7 @@
 #include "Gameplay/Character/Component/MCombatComponent.h"
 #include "MPlayerCombatComponent.generated.h"
 
+class UMCombatAttributeSet;
 class AMPlayerCharacterBase;
 struct FGameplayTag;
 
@@ -39,5 +40,8 @@ public:
 	void ExecuteSkillSlot(int32 SkillSlotIndex);
 	
 	float GetPlayerAttackRange() const;
+	float GetPlayerAttackSpeed() const;
 	
+private:
+	const UMCombatAttributeSet* GetCombatAttributeSet() const;
 };

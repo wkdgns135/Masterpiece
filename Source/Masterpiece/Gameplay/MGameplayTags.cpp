@@ -10,7 +10,6 @@ namespace MGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Input_Ability_Dodge, "Input.Ability.Dodge");
 	UE_DEFINE_GAMEPLAY_TAG(Input_Action_Interaction, "Input.Action.Interaction");
 
-	UE_DEFINE_GAMEPLAY_TAG(State_AttackReady, "State.AttackReady");
 	UE_DEFINE_GAMEPLAY_TAG(State_Attacking, "State.Attacking");
 	UE_DEFINE_GAMEPLAY_TAG(State_AutoAttacking, "State.AutoAttacking");
 	UE_DEFINE_GAMEPLAY_TAG(State_Moving, "State.Moving");
@@ -55,4 +54,6 @@ namespace MGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Block_Skill, "Block.Skill");
 	UE_DEFINE_GAMEPLAY_TAG(Block_Movement, "Block.Movement");
 	UE_DEFINE_GAMEPLAY_TAG(Block_Interaction, "Block.Interaction");
+	
+	UE_DEFINE_GAMEPLAY_TAG(Data_Cooldown, "Data.Cooldown");
 }

@@ -59,6 +59,10 @@ void UMPlayerMovementComponent::StopNavigationMovement()
 {
 	CurrentTargetActor.Reset();
 	bIsNavigating = false;
+	if (AMGameplayPlayerController* PlayerController = GetMGameplayPlayerController())
+	{
+		PlayerController->StopMovement();
+	}
 	OnNavigationMoveFinishedDelegate.Broadcast(false);
 }
 
@@ -90,6 +94,10 @@ void UMPlayerMovementComponent::FaceTargetLocation(const FVector& TargetLocation
 
 void UMPlayerMovementComponent::FaceTargetActor(const AActor* TargetActor)
 {
+	if (!IsValid(TargetActor))
+	{
+		return;
+	}
 	FaceTargetLocation(TargetActor->GetActorLocation());
 }
 

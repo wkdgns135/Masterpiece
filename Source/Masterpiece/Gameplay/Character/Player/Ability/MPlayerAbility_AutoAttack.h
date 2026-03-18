@@ -25,7 +25,6 @@ private:
 	UFUNCTION()
 	void ExecuteAutoAttackStep();
 	void HandleMovementFinished(bool bReachedTarget);
-	void HandleAttackFinished();
 	
 	UPROPERTY(Transient)
 	TObjectPtr<const AActor> CurrentTargetActor;

@@ -22,8 +22,8 @@ UMPlayerAbility_Movement::UMPlayerAbility_Movement()
 
 	ActivationOwnedTags.AddTag(MGameplayTags::State_Moving);
 	CancelAbilitiesWithTag.AddTag(MGameplayTags::Ability_Attack_Auto);
+	CancelAbilitiesWithTag.AddTag(MGameplayTags::Ability_Attack_Primary);
 
-	ActivationBlockedTags.AddTag(MGameplayTags::State_Attacking);
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Interacting);
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Stunned);
 	ActivationBlockedTags.AddTag(MGameplayTags::State_Dead);
@@ -81,6 +81,7 @@ void UMPlayerAbility_Movement::EndAbility(const FGameplayAbilitySpecHandle Handl
 	if (UMPlayerMovementComponent* MovementComponent = GetMPlayerMovementComponent())
 	{
 		MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
+		MovementComponent->StopNavigationMovement();
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);

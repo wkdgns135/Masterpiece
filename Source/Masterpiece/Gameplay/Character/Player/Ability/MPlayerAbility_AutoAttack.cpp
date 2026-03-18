@@ -3,11 +3,10 @@
 
 #include "MPlayerAbility_AutoAttack.h"
 
+#include "AbilitySystemComponent.h"
 #include "Gameplay/MGameplayTags.h"
 #include "Gameplay/Character/Player/Component/MPlayerCombatComponent.h"
 #include "Gameplay/Character/Player/Component/MPlayerMovementComponent.h"
-#include "Abilities/Tasks/AbilityTask_WaitGameplayTag.h"
-
 UMPlayerAbility_AutoAttack::UMPlayerAbility_AutoAttack()
 {
 	AbilityTag = MGameplayTags::Ability_Attack_Auto;
@@ -33,19 +32,34 @@ void UMPlayerAbility_AutoAttack::ActivateAbility(const FGameplayAbilitySpecHandl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	CurrentTargetActor = TriggerEventData ? TriggerEventData->Target : nullptr;
+	const AActor* RequestedTargetActor = TriggerEventData ? TriggerEventData->Target.Get() : nullptr;
+	if (RequestedTargetActor == CurrentTargetActor.Get() && IsValid(RequestedTargetActor))
+	{
+		const UAbilitySystemComponent* AbilitySystemComponent = GetOwnerAbilitySystemComponent();
+		if (AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(MGameplayTags::State_Attacking))
+		{
+			EndAbilityAsSuccess();
+			return;
+		}
+	}
+
+	if (IsValid(RequestedTargetActor))
+	{
+		CurrentTargetActor = RequestedTargetActor;
+	}
+
 	ExecuteAutoAttackStep();
 }
 
 void UMPlayerAbility_AutoAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                             const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	StopWaitingForGameplayTag(MGameplayTags::State_Attacking);
 	if (UMPlayerMovementComponent* MovementComponent = GetMPlayerMovementComponent())
 	{
 		MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
 		MovementComponent->StopNavigationMovement();
 	}
+
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -63,9 +77,9 @@ void UMPlayerAbility_AutoAttack::ExecuteAutoAttackStep()
 	{
 		MovementComponent->OnNavigationMoveFinishedDelegate.RemoveAll(this);
 		MovementComponent->StopNavigationMovement();
-
-		WaitForGameplayTagToBeAddedThenRemoved(MGameplayTags::State_Attacking, this, &ThisClass::HandleAttackFinished);
+		
 		CombatComponent->ExecutePrimaryAttack(CurrentTargetActor);
+		EndAbilityAsSuccess();
 		return;
 	}
 
@@ -84,12 +98,4 @@ void UMPlayerAbility_AutoAttack::HandleMovementFinished(const bool bReachedTarge
 	}
 
 	ExecuteAutoAttackStep();
-}
-
-void UMPlayerAbility_AutoAttack::HandleAttackFinished()
-{
-	// TODO : 공격 루프 수정 근데
-	auto* Task = UAbilityTask_WaitGameplayTagAdded::WaitGameplayTagAdd(this, MGameplayTags::State_AttackReady);
-	Task->Added.AddDynamic(this, &ThisClass::ExecuteAutoAttackStep);
-	Task->ReadyForActivation();
 }

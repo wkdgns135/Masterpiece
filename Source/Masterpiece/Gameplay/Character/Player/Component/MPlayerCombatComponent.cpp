@@ -5,7 +5,6 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
 #include "Gameplay/MGameplayTags.h"
 #include "Gameplay/AbilitySystem/Attribute/MCombatAttributeSet.h"
 #include "Gameplay/Interface/MDamageable.h"
@@ -37,6 +36,7 @@ void UMPlayerCombatComponent::ExecutePrimaryAttack(const AActor* TargetActor)
 	Payload.EventTag = MGameplayTags::Event_PrimaryAttack_Request;
 	Payload.Instigator = PlayerCharacter;
 	Payload.Target = TargetActor;
+	Payload.EventMagnitude = GetPlayerAttackSpeed();
 	
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerCharacter, MGameplayTags::Event_PrimaryAttack_Request, Payload);
 }
@@ -61,9 +61,21 @@ bool UMPlayerCombatComponent::CanPrimaryAttack(const AActor* TargetActor) const
 
 float UMPlayerCombatComponent::GetPlayerAttackRange() const
 {
+	const UMCombatAttributeSet* CombatAttributeSet = GetCombatAttributeSet();
+	return CombatAttributeSet ? CombatAttributeSet->GetAttackRange() : 0.0f;
+}
+
+float UMPlayerCombatComponent::GetPlayerAttackSpeed() const
+{
+	const UMCombatAttributeSet* CombatAttributeSet = GetCombatAttributeSet();
+	return CombatAttributeSet ? CombatAttributeSet->GetAttackSpeed() : 1.0f;
+}
+
+const UMCombatAttributeSet* UMPlayerCombatComponent::GetCombatAttributeSet() const
+{
 	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	const UMCombatAttributeSet* CombatAttributeSet = PlayerCharacter ? PlayerCharacter->GetCombatAttributeSet() : nullptr;
-	return CombatAttributeSet ? CombatAttributeSet->GetAttackRange() : 0.0f;
+	return CombatAttributeSet;
 }
 
 void UMPlayerCombatComponent::ExecuteDodge()
