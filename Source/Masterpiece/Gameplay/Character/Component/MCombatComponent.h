@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
+#include "Components/ActorComponent.h"
 #include "MCombatComponent.generated.h"
 
 class AMCharacterBase;
+class UMCombatAttributeSet;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMCombatComponent : public UActorComponent
@@ -22,6 +23,21 @@ protected:
 public:
 	UFUNCTION(BlueprintPure, Category="Combat")
 	AMCharacterBase* GetOwnerCharacter() const;
+
+	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
+	virtual void ExecutePrimaryAttack(const AActor* TargetActor);
+
+	UFUNCTION(BlueprintCallable, Category="Combat|Attack")
+	virtual bool CanPrimaryAttack(const AActor* TargetActor) const;
+
+	UFUNCTION(BlueprintPure, Category="Combat|Attack")
+	virtual float GetAttackRange() const;
+
+	UFUNCTION(BlueprintPure, Category="Combat|Attack")
+	virtual float GetAttackSpeed() const;
+
+protected:
+	virtual const UMCombatAttributeSet* GetCombatAttributeSet() const;
 
 private:
 	UPROPERTY(Transient)

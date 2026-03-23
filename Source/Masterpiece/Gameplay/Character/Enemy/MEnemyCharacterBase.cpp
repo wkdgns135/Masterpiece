@@ -3,8 +3,11 @@
 
 #include "MEnemyCharacterBase.h"
 
+#include "Gameplay/Character/Component/MCombatComponent.h"
+
 AMEnemyCharacterBase::AMEnemyCharacterBase()
 {
+	CombatComponent = CreateDefaultSubobject<UMCombatComponent>(TEXT("CombatComponent"));
 }
 
 void AMEnemyCharacterBase::BeginPlay()

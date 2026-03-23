@@ -7,6 +7,8 @@
 #include "Gameplay/Interface/MDamageable.h"
 #include "MEnemyCharacterBase.generated.h"
 
+class UMCombatComponent;
+
 UCLASS(Abstract)
 class MASTERPIECE_API AMEnemyCharacterBase : public AMCharacterBase, public IMDamageable
 {
@@ -21,4 +23,14 @@ protected:
 	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
 	virtual void HandleDeath() override;
 	virtual void ApplyHealing(float Healing, AActor* Healer) override;
+
+public:
+	FORCEINLINE UMCombatComponent* GetCombatComponent() const
+	{
+		return CombatComponent;
+	}
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<UMCombatComponent> CombatComponent;
 };

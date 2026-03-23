@@ -7,10 +7,6 @@
 #include "Gameplay/Character/Component/MCombatComponent.h"
 #include "MPlayerCombatComponent.generated.h"
 
-class UMCombatAttributeSet;
-class AMPlayerCharacterBase;
-struct FGameplayTag;
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerCombatComponent : public UMCombatComponent, public IMPlayerComponentInterface
 {
@@ -25,12 +21,6 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
-	void ExecutePrimaryAttack(const AActor* TargetActor);
-
-	UFUNCTION(BlueprintCallable, Category="Combat|Attack")
-	bool CanPrimaryAttack(const AActor* TargetActor) const;
-
-	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
 	void ExecuteDodge();
 
 	UFUNCTION(BlueprintCallable, Category="Combat|Ability")
@@ -41,7 +31,4 @@ public:
 	
 	float GetPlayerAttackRange() const;
 	float GetPlayerAttackSpeed() const;
-	
-private:
-	const UMCombatAttributeSet* GetCombatAttributeSet() const;
 };
