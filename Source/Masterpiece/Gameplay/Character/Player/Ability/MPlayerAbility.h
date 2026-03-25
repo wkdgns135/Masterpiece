@@ -33,7 +33,4 @@ public:
 	UFUNCTION( BlueprintCallable, Category="Ability")
 	UMPlayerCombatComponent* GetMPlayerCombatComponent() const;
 	
-	UFUNCTION( BlueprintCallable, Category="Ability")
-	bool SendGameplayEventToOwner(const FGameplayTag& EventTag, const FGameplayEventData& Payload) const;
-	
 };

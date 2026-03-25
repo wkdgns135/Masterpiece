@@ -31,15 +31,3 @@ UMPlayerCombatComponent* UMPlayerAbility::GetMPlayerCombatComponent() const
 	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	return PlayerCharacter ? PlayerCharacter->GetPlayerCombatComponent() : nullptr;
 }
-
-bool UMPlayerAbility::SendGameplayEventToOwner(const FGameplayTag& EventTag, const FGameplayEventData& Payload) const
-{
-	AActor* OwnerActor = GetOwnerActor();
-	if (!OwnerActor || !EventTag.IsValid())
-	{
-		return false;
-	}
-
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerActor, EventTag, Payload);
-	return true;
-}

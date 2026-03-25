@@ -2,6 +2,7 @@
 
 #include "MGameplayAbility.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Cost/MAbilityCost.h"
 #include "TimerManager.h"
@@ -128,3 +129,16 @@ void UMGameplayAbility::EndAbilityAsCancelled(const bool bReplicateEndAbility)
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicateEndAbility, true);
 }
+
+bool UMGameplayAbility::SendGameplayEventToOwner(const FGameplayTag& EventTag, const FGameplayEventData& Payload) const
+{
+	AActor* OwnerActor = GetOwnerActor();
+	if (!OwnerActor || !EventTag.IsValid())
+	{
+		return false;
+	}
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerActor, EventTag, Payload);
+	return true;
+}
+

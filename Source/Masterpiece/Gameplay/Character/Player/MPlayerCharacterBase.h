@@ -3,17 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AbilitySystemInterface.h"
 #include "Core/Types/MStatTypes.h"
-#include "Gameplay/Character/MCharacterBase.h"
+#include "Gameplay/Character/MAbilityCharacterBase.h"
 #include "Gameplay/Character/Interface/MAttacker.h"
 #include "Gameplay/Interface/MDamageable.h"
 #include "MPlayerCharacterBase.generated.h"
 
 class UAbilitySystemComponent;
-class UMAbilitySystemComponent;
 class UMCombatAttributeSet;
-class UMGameplayAbility;
 class UMPlayerCameraComponent;
 class UMPlayerComponent;
 class UMPlayerAttributeSet;
@@ -24,19 +21,12 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS(Abstract)
-class MASTERPIECE_API AMPlayerCharacterBase : public AMCharacterBase, public IAbilitySystemInterface, public IMDamageable, public IMAttacker
+class MASTERPIECE_API AMPlayerCharacterBase : public AMAbilityCharacterBase, public IMDamageable, public IMAttacker
 {
 	GENERATED_BODY()
 
 public:
 	AMPlayerCharacterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	UMAbilitySystemComponent* GetMAbilitySystemComponent() const;
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-protected:
-	virtual void BeginPlay() override;
-	virtual void PossessedBy(AController* NewController) override;
-	virtual void OnRep_PlayerState() override;
 	
 	// MDamageable interface
 	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) override;
@@ -64,17 +54,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCameraComponent> FollowCameraComponent;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="GAS|Abilities", meta = (AllowPrivateAccess = "true"))
-	TArray<TSubclassOf<UMGameplayAbility>> StartupAbilities;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="GAS|Attributes", meta = (AllowPrivateAccess = "true"))
 	FPlayerStat DefaultPlayerStat;
 
 private:
-	void InitializeAbilitySystem();
-	void InitializeDefaultAttributes();
-	void GrantStartupAbilities();
 	class AMGameplayPlayerState* GetGameplayPlayerState() const;
+
+protected:
+	virtual UAbilitySystemComponent* ResolveAbilitySystemComponent() const override;
+	virtual UMCombatAttributeSet* ResolveCombatAttributeSet() const override;
+	virtual const FBaseStat* GetDefaultBaseStat() const override;
+	virtual bool AreStartupAbilitiesGranted() const override;
+	virtual void SetStartupAbilitiesGranted(bool bGranted) override;
+	virtual AActor* GetAbilityActorInfoOwner() const override;
+	virtual void InitializeDefaultAttributes() override;
 	
 public:
 	FORCEINLINE USpringArmComponent* GetSpringArmComponent() const
@@ -104,6 +97,5 @@ public:
 	}
 	UMPlayerInputComponent* GetPlayerInputComponent() const;
 	UMPlayerMovementComponent* GetPlayerMovementComponent() const;
-	UMCombatAttributeSet* GetCombatAttributeSet() const;
 	UMPlayerAttributeSet* GetPlayerAttributeSet() const;
 };

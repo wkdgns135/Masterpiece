@@ -65,6 +65,12 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 	{
 		return;
 	}
+	
+	AActor* HitActor = CursorHit.GetActor();
+	if (HitActor == PlayerCharacter)
+	{
+		return;
+	}
 
 	FGameplayEventData Payload;
 	Payload.EventTag = MGameplayTags::Event_Move_Request;
@@ -72,7 +78,7 @@ void UMPlayerComponent::HandleRightClickCommand(const FInputActionValue& Value)
 	Payload.ContextHandle = UAbilitySystemGlobals::Get().AllocGameplayEffectContext();
 	Payload.ContextHandle.AddHitResult(CursorHit);
 
-	AActor* HitActor = CursorHit.GetActor();
+	
 	if (IsValid(HitActor) && HitActor->GetClass()->ImplementsInterface(UMDamageable::StaticClass()))
 	{
 		Payload.EventTag = MGameplayTags::Event_AutoAttack_Request;

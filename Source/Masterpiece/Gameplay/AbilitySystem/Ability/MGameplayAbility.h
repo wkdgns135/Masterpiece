@@ -52,6 +52,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable, Category="Ability|Common")
 	void EndAbilityAsCancelled(bool bReplicateEndAbility = true);
+	
+	UFUNCTION( BlueprintCallable, Category="Ability|Common")
+	bool SendGameplayEventToOwner(const FGameplayTag& EventTag, const FGameplayEventData& Payload) const;
 
 protected:
 	// Ability identity tag used for ASC activation lookup.
