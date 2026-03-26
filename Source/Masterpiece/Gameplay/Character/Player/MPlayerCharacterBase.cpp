@@ -9,6 +9,7 @@
 #include "Component/MPlayerCameraComponent.h"
 #include "Component/MPlayerComponent.h"
 #include "Component/MPlayerCombatComponent.h"
+#include "Component/MPlayerSkillComponent.h"
 #include "Component/MPlayerMovementComponent.h"
 #include "Input/MPlayerInputComponent.h"
 #include "Gameplay/AbilitySystem/MAbilitySystemComponent.h"
@@ -27,6 +28,7 @@ AMPlayerCharacterBase::AMPlayerCharacterBase(const FObjectInitializer& ObjectIni
 
 	PlayerComponent = CreateDefaultSubobject<UMPlayerComponent>(TEXT("PlayerComponent"));
 	PlayerCombatComponent = CreateDefaultSubobject<UMPlayerCombatComponent>(TEXT("PlayerCombatComponent"));
+	SkillComponent = CreateDefaultSubobject<UMPlayerSkillComponent>(TEXT("SkillComponent"));
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArmComponent->SetupAttachment(RootComponent);

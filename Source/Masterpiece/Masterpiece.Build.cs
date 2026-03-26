@@ -8,7 +8,7 @@ public class Masterpiece : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DeveloperSettings", "InputCore", "EnhancedInput", "AIModule", "GameplayAbilities", "GameplayTags", "GameplayTasks", "NavigationSystem" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DeveloperSettings", "InputCore", "EnhancedInput", "AIModule", "GameplayAbilities", "GameplayTags", "GameplayTasks", "NavigationSystem", "StructUtils" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 		

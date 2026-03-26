@@ -6,7 +6,7 @@
 #include "MPlayerAbility.h"
 #include "MPlayerAbility_Movement.generated.h"
 
-UCLASS(Abstract, Blueprintable)
+UCLASS()
 class MASTERPIECE_API UMPlayerAbility_Movement : public UMPlayerAbility
 {
 	GENERATED_BODY()
