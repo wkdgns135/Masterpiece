@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/PlayerController.h"
 #include "MGameplayPlayerController.generated.h"
 
-class UInputMappingContext;
 /**
  * 
  */
@@ -20,8 +20,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="Input")
 	bool TraceCursorToWorld(FHitResult& OutHitResult) const;
+
+	UFUNCTION(BlueprintCallable, Category="UI")
+	bool ToggleSkillTreeMenu();
 	
 protected:
 	virtual void BeginPlay() override;
-	
+
 };

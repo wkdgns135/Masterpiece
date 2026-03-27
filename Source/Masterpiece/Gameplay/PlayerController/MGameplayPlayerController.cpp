@@ -3,8 +3,9 @@
 
 #include "MGameplayPlayerController.h"
 
-#include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
-#include "EnhancedInputSubsystems.h"
+#include "Engine/LocalPlayer.h"
+#include "Gameplay/UI/MUIManagerSubsystem.h"
+#include "Gameplay/UI/MUIGameplayTags.h"
 
 AMGameplayPlayerController::AMGameplayPlayerController()
 {
@@ -25,4 +26,16 @@ void AMGameplayPlayerController::BeginPlay()
 bool AMGameplayPlayerController::TraceCursorToWorld(FHitResult& OutHitResult) const
 {
 	return GetHitResultUnderCursor(ECC_Visibility, true, OutHitResult);
+}
+
+bool AMGameplayPlayerController::ToggleSkillTreeMenu()
+{
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	UMUIManagerSubsystem* UIManager = LocalPlayer ? LocalPlayer->GetSubsystem<UMUIManagerSubsystem>() : nullptr;
+	if (!UIManager)
+	{
+		return false;
+	}
+
+	return UIManager->ToggleWidgetByTag(MUIGameplayTags::UI_Widget_GameMenu_SkillTree);
 }

@@ -8,12 +8,16 @@
 #include "Gameplay/Character/Player/Skill/MSkillAbilityFactory.h"
 #include "Gameplay/Character/Player/Skill/MSkillDefinition.h"
 #include "Gameplay/Character/Player/Skill/MSkillTreeDataAsset.h"
-#include "InstancedStruct.h"
 #include "StructUtils/InstancedStruct.h"
 
 UMPlayerSkillComponent::UMPlayerSkillComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+}
+
+const UMSkillTreeDataAsset* UMPlayerSkillComponent::GetSkillTreeAsset() const
+{
+	return ResolveSkillTreeAsset();
 }
 
 bool UMPlayerSkillComponent::EquipSkillToSlot(const FGameplayTag& SkillTag, const FGameplayTag& SlotTag, const int32 SkillRank)
@@ -51,6 +55,7 @@ bool UMPlayerSkillComponent::EquipSkillToSlot(const FGameplayTag& SkillTag, cons
 	}
 
 	EquippedSkillHandlesBySlot.FindOrAdd(ActualSlotTag) = NewHandle;
+	OnSkillLoadoutChanged.Broadcast();
 	return true;
 }
 
@@ -67,7 +72,13 @@ bool UMPlayerSkillComponent::UnequipSkillSlot(const FGameplayTag& SlotTag)
 		return false;
 	}
 
-	return ClearEquippedSlotInternal(AbilitySystemComponent, SlotTag);
+	const bool bRemoved = ClearEquippedSlotInternal(AbilitySystemComponent, SlotTag);
+	if (bRemoved)
+	{
+		OnSkillLoadoutChanged.Broadcast();
+	}
+
+	return bRemoved;
 }
 
 bool UMPlayerSkillComponent::IsSkillSlotEquipped(const FGameplayTag& SlotTag) const
@@ -98,7 +109,7 @@ UAbilitySystemComponent* UMPlayerSkillComponent::ResolveAbilitySystemComponent()
 	return AbilityCharacter ? AbilityCharacter->GetAbilitySystemComponent() : nullptr;
 }
 
-UMSkillTreeDataAsset* UMPlayerSkillComponent::ResolveSkillTreeAsset() const
+const UMSkillTreeDataAsset* UMPlayerSkillComponent::ResolveSkillTreeAsset() const
 {
 	return SkillTreeAsset.LoadSynchronous();
 }

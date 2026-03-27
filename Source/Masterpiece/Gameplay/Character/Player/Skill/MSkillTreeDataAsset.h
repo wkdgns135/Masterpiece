@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "InstancedStruct.h"
+#include "StructUtils/InstancedStruct.h"
+#if WITH_EDITOR
+#include "Misc/DataValidation.h"
+#endif
 #include "MSkillTreeDataAsset.generated.h"
 
+struct FMSkillDefinitionBase;
 struct FInstancedStruct;
-
 UCLASS(BlueprintType)
 class MASTERPIECE_API UMSkillTreeDataAsset : public UPrimaryDataAsset
 {
@@ -17,4 +20,10 @@ class MASTERPIECE_API UMSkillTreeDataAsset : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Skill", meta=(BaseStruct="/Script/Masterpiece.MSkillDefinitionBase", ExcludeBaseStruct))
 	TArray<FInstancedStruct> Skills;
+
+	bool GetAllSkillDefinitions(TArray<const FMSkillDefinitionBase*>& OutDefinitions, TArray<bool>& OutPassiveFlags) const;
+
+#if WITH_EDITOR
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
+#endif
 };

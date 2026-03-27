@@ -13,6 +13,8 @@ struct FMSkillDefinitionActive;
 class UAbilitySystemComponent;
 class UMSkillTreeDataAsset;
 
+DECLARE_MULTICAST_DELEGATE(FOnPlayerSkillLoadoutChanged);
+
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerSkillComponent : public UActorComponent
 {
@@ -20,6 +22,10 @@ class MASTERPIECE_API UMPlayerSkillComponent : public UActorComponent
 
 public:
 	UMPlayerSkillComponent();
+
+	FOnPlayerSkillLoadoutChanged OnSkillLoadoutChanged;
+
+	const UMSkillTreeDataAsset* GetSkillTreeAsset() const;
 
 	UFUNCTION(BlueprintCallable, Category="Skill")
 	bool EquipSkillToSlot(const FGameplayTag& SkillTag, const FGameplayTag& SlotTag, int32 SkillRank = 1);
@@ -35,7 +41,7 @@ protected:
 
 private:
 	UAbilitySystemComponent* ResolveAbilitySystemComponent() const;
-	UMSkillTreeDataAsset* ResolveSkillTreeAsset() const;
+	const UMSkillTreeDataAsset* ResolveSkillTreeAsset() const;
 	const FMSkillDefinitionActive* FindActiveSkillDefinitionByTag(const FGameplayTag& SkillTag) const;
 	bool ClearEquippedSlotInternal(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayTag& SlotTag);
 
