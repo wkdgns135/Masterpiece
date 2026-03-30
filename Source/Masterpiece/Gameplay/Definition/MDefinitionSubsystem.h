@@ -6,10 +6,10 @@
 #include "MDefinitionSubsystem.generated.h"
 
 struct FStreamableHandle;
-class UMDefinitionCollectionDataAsset;
+class UMDefinitionCollection;
 class UMDefinitionObject;
 
-DECLARE_DELEGATE_OneParam(FOnDefinitionCollectionLoaded, UMDefinitionCollectionDataAsset*);
+DECLARE_DELEGATE_OneParam(FOnDefinitionCollectionLoaded, UMDefinitionCollection*);
 
 UCLASS()
 class MASTERPIECE_API UMDefinitionSubsystem : public UGameInstanceSubsystem
@@ -18,7 +18,7 @@ class MASTERPIECE_API UMDefinitionSubsystem : public UGameInstanceSubsystem
 
 public:
 	UFUNCTION(BlueprintPure, Category="Definition")
-	UMDefinitionCollectionDataAsset* GetCollectionByTag(FGameplayTag CollectionTag) const;
+	UMDefinitionCollection* GetCollectionByTag(FGameplayTag CollectionTag) const;
 
 	UFUNCTION(BlueprintPure, Category="Definition")
 	UMDefinitionObject* GetDefinitionByTag(FGameplayTag DefinitionTag) const;
@@ -42,19 +42,19 @@ protected:
 
 private:
 	void EnsureRegistryInitialized() const;
-	UMDefinitionCollectionDataAsset* LoadCollectionByTagSync(FGameplayTag CollectionTag) const;
+	UMDefinitionCollection* LoadCollectionByTagSync(FGameplayTag CollectionTag) const;
 	void HandleCollectionAsyncLoadComplete(FGameplayTag CollectionTag);
-	void IndexDefinitionsFromCollection(UMDefinitionCollectionDataAsset* LoadedCollection) const;
-	void ExecutePendingCollectionCallbacks(FGameplayTag CollectionTag, UMDefinitionCollectionDataAsset* LoadedCollection);
+	void IndexDefinitionsFromCollection(UMDefinitionCollection* LoadedCollection) const;
+	void ExecutePendingCollectionCallbacks(FGameplayTag CollectionTag, UMDefinitionCollection* LoadedCollection);
 
 private:
 	mutable bool bRegistryInitialized = false;
 
 	UPROPERTY(Transient)
-	mutable TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>> CollectionAssetsByTag;
+	mutable TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>> CollectionAssetsByTag;
 
 	UPROPERTY(Transient)
-	mutable TMap<FGameplayTag, TObjectPtr<UMDefinitionCollectionDataAsset>> LoadedCollectionsByTag;
+	mutable TMap<FGameplayTag, TObjectPtr<UMDefinitionCollection>> LoadedCollectionsByTag;
 
 	UPROPERTY(Transient)
 	mutable TMap<FGameplayTag, TObjectPtr<UMDefinitionObject>> LoadedDefinitionsByTag;

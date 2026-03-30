@@ -8,7 +8,7 @@
 #include "MUIManagerSubsystem.generated.h"
 
 class UMTaggedWidget;
-class UMUIWidgetRegistryDataAsset;
+class UMUIWidgetRegistry;
 
 UCLASS()
 class MASTERPIECE_API UMUIManagerSubsystem : public ULocalPlayerSubsystem
@@ -50,11 +50,11 @@ private:
 	bool ResolveLayerTagFromWidget(const UMTaggedWidget* Widget, FGameplayTag& OutLayerTag) const;
 	bool IsStackableWidget(const UMTaggedWidget* Widget) const;
 	bool PopTopWidgetInternal(FGameplayTag LayerTag);
-	const UMUIWidgetRegistryDataAsset* GetWidgetRegistryForLayer(FGameplayTag LayerTag);
+	const UMUIWidgetRegistry* GetWidgetRegistryForLayer(FGameplayTag LayerTag);
 	TSubclassOf<UMTaggedWidget> ResolveWidgetClassByTag(FGameplayTag WidgetTag) const;
 
 private:
 	TMap<FGameplayTag, TArray<TWeakObjectPtr<UMTaggedWidget>>> LayerStacks;
 	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<UMUIWidgetRegistryDataAsset>> LoadedLayerRegistries;
+	TMap<FGameplayTag, TObjectPtr<UMUIWidgetRegistry>> LoadedLayerRegistries;
 };

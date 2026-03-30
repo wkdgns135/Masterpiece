@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Gameplay/UI/MUIWidgetRegistryDataAsset.h"
+#include "Gameplay/UI/MUIWidgetRegistry.h"
 
 #include "Gameplay/UI/Widget/MTaggedWidget.h"
 #include "Misc/DataValidation.h"
@@ -15,7 +15,7 @@ void AddWidgetRegistryValidationError(FDataValidationContext& Context, const FSt
 #endif
 }
 
-TSubclassOf<UMTaggedWidget> UMUIWidgetRegistryDataAsset::FindWidgetClassByTag(const FGameplayTag WidgetTag) const
+TSubclassOf<UMTaggedWidget> UMUIWidgetRegistry::FindWidgetClassByTag(const FGameplayTag WidgetTag) const
 {
 	const TSoftClassPtr<UMTaggedWidget>* WidgetClass = WidgetEntries.Find(WidgetTag);
 	if (!WidgetClass)
@@ -27,7 +27,7 @@ TSubclassOf<UMTaggedWidget> UMUIWidgetRegistryDataAsset::FindWidgetClassByTag(co
 }
 
 #if WITH_EDITOR
-EDataValidationResult UMUIWidgetRegistryDataAsset::IsDataValid(FDataValidationContext& Context) const
+EDataValidationResult UMUIWidgetRegistry::IsDataValid(FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
 

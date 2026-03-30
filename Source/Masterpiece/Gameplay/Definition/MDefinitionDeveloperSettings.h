@@ -4,7 +4,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "MDefinitionDeveloperSettings.generated.h"
 
-class UMDefinitionRegistryDataAsset;
+class UMDefinitionRegistry;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Definitions"))
 class MASTERPIECE_API UMDefinitionDeveloperSettings : public UDeveloperSettings
@@ -14,9 +14,9 @@ class MASTERPIECE_API UMDefinitionDeveloperSettings : public UDeveloperSettings
 public:
 	virtual FName GetCategoryName() const override;
 
-	const TArray<TSoftObjectPtr<UMDefinitionRegistryDataAsset>>& GetDefinitionRegistries() const;
+	const TArray<TSoftObjectPtr<UMDefinitionRegistry>>& GetDefinitionRegistries() const;
 
 private:
 	UPROPERTY(Config, EditAnywhere, Category="Definition")
-	TArray<TSoftObjectPtr<UMDefinitionRegistryDataAsset>> DefinitionRegistries;
+	TArray<TSoftObjectPtr<UMDefinitionRegistry>> DefinitionRegistries;
 };

@@ -5,7 +5,7 @@ FName UMDefinitionDeveloperSettings::GetCategoryName() const
 	return TEXT("Game");
 }
 
-const TArray<TSoftObjectPtr<UMDefinitionRegistryDataAsset>>& UMDefinitionDeveloperSettings::GetDefinitionRegistries() const
+const TArray<TSoftObjectPtr<UMDefinitionRegistry>>& UMDefinitionDeveloperSettings::GetDefinitionRegistries() const
 {
 	return DefinitionRegistries;
 }

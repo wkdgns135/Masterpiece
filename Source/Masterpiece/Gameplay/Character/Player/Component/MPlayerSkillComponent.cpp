@@ -5,9 +5,9 @@
 #include "GameplayAbilitySpec.h"
 #include "Gameplay/Character/MAbilityCharacterBase.h"
 #include "Gameplay/Character/Player/Skill/MSkillDefinition.h"
+#include "Gameplay/Character/Player/Skill/MSkillDefinitionCollection.h"
 #include "Gameplay/Character/Player/Skill/MPlayerAbility_Skill.h"
-#include "Gameplay/Character/Player/Skill/MSkillTreeDataAsset.h"
-#include "Gameplay/Definition/MDefinitionCollectionDataAsset.h"
+#include "Gameplay/Definition/MDefinitionCollection.h"
 #include "Gameplay/Definition/MDefinitionSubsystem.h"
 
 namespace
@@ -228,7 +228,7 @@ void UMPlayerSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	SkillInstances.Empty();
 	EquippedSkillTagsBySlot.Empty();
 	EquippedSkillHandlesBySlot.Empty();
-	LoadedSkillTreeDefinition = nullptr;
+	LoadedSkillDefinitionCollection = nullptr;
 	bSkillStateLoading = false;
 	bSkillStateInitialized = false;
 
@@ -261,40 +261,40 @@ void UMPlayerSkillComponent::InitializeSkillState()
 	SkillInstances.Reset();
 	EquippedSkillTagsBySlot.Reset();
 	EquippedSkillHandlesBySlot.Reset();
-	LoadedSkillTreeDefinition = nullptr;
+	LoadedSkillDefinitionCollection = nullptr;
 	bSkillStateInitialized = false;
 	bSkillStateLoading = true;
 
 	UMDefinitionSubsystem* DefinitionSubsystem = ResolveDefinitionSubsystem();
-	if (!DefinitionSubsystem || !SkillTreeTag.IsValid())
+	if (!DefinitionSubsystem || !SkillDefinitionCollectionTag.IsValid())
 	{
 		bSkillStateLoading = false;
 		return;
 	}
 
 	if (!DefinitionSubsystem->LoadCollectionByTagAsync(
-		SkillTreeTag,
-		FOnDefinitionCollectionLoaded::CreateUObject(this, &ThisClass::HandleSkillTreeLoaded)))
+		SkillDefinitionCollectionTag,
+		FOnDefinitionCollectionLoaded::CreateUObject(this, &ThisClass::HandleSkillDefinitionCollectionLoaded)))
 	{
 		bSkillStateLoading = false;
 	}
 }
 
-void UMPlayerSkillComponent::HandleSkillTreeLoaded(UMDefinitionCollectionDataAsset* LoadedCollection)
+void UMPlayerSkillComponent::HandleSkillDefinitionCollectionLoaded(UMDefinitionCollection* LoadedCollection)
 {
 	bSkillStateLoading = false;
 	SkillInstances.Reset();
 	EquippedSkillTagsBySlot.Reset();
 	EquippedSkillHandlesBySlot.Reset();
-	LoadedSkillTreeDefinition = Cast<UMSkillTreeDataAsset>(LoadedCollection);
-	bSkillStateInitialized = LoadedSkillTreeDefinition != nullptr;
+	LoadedSkillDefinitionCollection = Cast<UMSkillDefinitionCollection>(LoadedCollection);
+	bSkillStateInitialized = LoadedSkillDefinitionCollection != nullptr;
 
-	if (!LoadedSkillTreeDefinition)
+	if (!LoadedSkillDefinitionCollection)
 	{
 		return;
 	}
 
-	const TArray<TObjectPtr<UMSkillDefinition>>& SkillDefinitions = LoadedSkillTreeDefinition->GetSkillDefinitions();
+	const TArray<TObjectPtr<UMSkillDefinition>>& SkillDefinitions = LoadedSkillDefinitionCollection->GetSkillDefinitions();
 	SkillInstances.Reserve(SkillDefinitions.Num());
 
 	for (UMSkillDefinition* SkillDefinition : SkillDefinitions)
@@ -345,15 +345,15 @@ UMDefinitionSubsystem* UMPlayerSkillComponent::ResolveDefinitionSubsystem() cons
 	return GameInstance ? GameInstance->GetSubsystem<UMDefinitionSubsystem>() : nullptr;
 }
 
-const UMSkillTreeDataAsset* UMPlayerSkillComponent::ResolveSkillTreeDefinition() const
+const UMSkillDefinitionCollection* UMPlayerSkillComponent::ResolveSkillDefinitionCollection() const
 {
-	return LoadedSkillTreeDefinition.Get();
+	return LoadedSkillDefinitionCollection.Get();
 }
 
 const UMSkillDefinition* UMPlayerSkillComponent::ResolveSkillDefinition(const FGameplayTag& SkillTag) const
 {
-	const UMSkillTreeDataAsset* SkillTreeDefinition = ResolveSkillTreeDefinition();
-	return SkillTreeDefinition ? SkillTreeDefinition->FindSkillDefinitionByTag(SkillTag) : nullptr;
+	const UMSkillDefinitionCollection* SkillDefinitionCollection = ResolveSkillDefinitionCollection();
+	return SkillDefinitionCollection ? SkillDefinitionCollection->FindSkillDefinitionByTag(SkillTag) : nullptr;
 }
 
 bool UMPlayerSkillComponent::ClearEquippedSlotInternal(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayTag& SlotTag, FGameplayTag* OutRemovedSkillTag)

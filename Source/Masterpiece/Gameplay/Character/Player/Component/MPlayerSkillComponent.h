@@ -8,11 +8,11 @@
 #include "MPlayerSkillComponent.generated.h"
 
 class UAbilitySystemComponent;
-class UMDefinitionCollectionDataAsset;
+class UMDefinitionCollection;
 class UMDefinitionSubsystem;
 class UMSkillDefinition;
 class UMSkillDefinitionActive;
-class UMSkillTreeDataAsset;
+class UMSkillDefinitionCollection;
 
 DECLARE_MULTICAST_DELEGATE(FOnPlayerSkillLoadoutChanged);
 DECLARE_MULTICAST_DELEGATE(FOnPlayerSkillStateChanged);
@@ -55,17 +55,17 @@ protected:
 private:
 	bool EnsureSkillStateInitialized() const;
 	void InitializeSkillState();
-	void HandleSkillTreeLoaded(UMDefinitionCollectionDataAsset* LoadedCollection);
+	void HandleSkillDefinitionCollectionLoaded(UMDefinitionCollection* LoadedCollection);
 	void BroadcastSkillStateChanged(const TArray<FGameplayTag>& ChangedSlotTags);
 	UAbilitySystemComponent* ResolveAbilitySystemComponent() const;
 	UMDefinitionSubsystem* ResolveDefinitionSubsystem() const;
-	const UMSkillTreeDataAsset* ResolveSkillTreeDefinition() const;
+	const UMSkillDefinitionCollection* ResolveSkillDefinitionCollection() const;
 	const UMSkillDefinition* ResolveSkillDefinition(const FGameplayTag& SkillTag) const;
 	bool ClearEquippedSlotInternal(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayTag& SlotTag, FGameplayTag* OutRemovedSkillTag = nullptr);
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Skill", meta=(AllowPrivateAccess="true"))
-	FGameplayTag SkillTreeTag;
+	FGameplayTag SkillDefinitionCollectionTag;
 
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UMSkillInstance>> SkillInstances;
@@ -77,7 +77,7 @@ private:
 	TMap<FGameplayTag, FGameplayAbilitySpecHandle> EquippedSkillHandlesBySlot;
 
 	UPROPERTY(Transient)
-	TObjectPtr<UMSkillTreeDataAsset> LoadedSkillTreeDefinition;
+	TObjectPtr<UMSkillDefinitionCollection> LoadedSkillDefinitionCollection;
 
 	UPROPERTY(Transient)
 	bool bSkillStateLoading = false;

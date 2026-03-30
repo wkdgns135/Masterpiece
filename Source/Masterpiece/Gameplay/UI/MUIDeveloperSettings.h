@@ -7,7 +7,7 @@
 #include "Engine/DeveloperSettings.h"
 #include "MUIDeveloperSettings.generated.h"
 
-class UMUIWidgetRegistryDataAsset;
+class UMUIWidgetRegistry;
 
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="UI"))
 class MASTERPIECE_API UMUIDeveloperSettings : public UDeveloperSettings
@@ -17,9 +17,9 @@ class MASTERPIECE_API UMUIDeveloperSettings : public UDeveloperSettings
 public:
 	virtual FName GetCategoryName() const override;
 
-	bool FindWidgetRegistryAssetByLayerTag(FGameplayTag LayerTag, TSoftObjectPtr<UMUIWidgetRegistryDataAsset>& OutRegistryAsset) const;
+	bool FindWidgetRegistryByLayerTag(FGameplayTag LayerTag, TSoftObjectPtr<UMUIWidgetRegistry>& OutRegistry) const;
 
 private:
 	UPROPERTY(Config, EditAnywhere, Category="UI", meta=(Categories="UI.Widget"))
-	TMap<FGameplayTag, TSoftObjectPtr<UMUIWidgetRegistryDataAsset>> LayerRegistries;
+	TMap<FGameplayTag, TSoftObjectPtr<UMUIWidgetRegistry>> LayerRegistries;
 };

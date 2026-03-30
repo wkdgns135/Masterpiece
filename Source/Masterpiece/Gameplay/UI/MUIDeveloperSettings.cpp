@@ -2,22 +2,22 @@
 
 #include "Gameplay/UI/MUIDeveloperSettings.h"
 
-#include "Gameplay/UI/MUIWidgetRegistryDataAsset.h"
+#include "Gameplay/UI/MUIWidgetRegistry.h"
 
 FName UMUIDeveloperSettings::GetCategoryName() const
 {
 	return TEXT("Game");
 }
 
-bool UMUIDeveloperSettings::FindWidgetRegistryAssetByLayerTag(const FGameplayTag LayerTag, TSoftObjectPtr<UMUIWidgetRegistryDataAsset>& OutRegistryAsset) const
+bool UMUIDeveloperSettings::FindWidgetRegistryByLayerTag(const FGameplayTag LayerTag, TSoftObjectPtr<UMUIWidgetRegistry>& OutRegistry) const
 {
-	const TSoftObjectPtr<UMUIWidgetRegistryDataAsset>* RegistryAsset = LayerRegistries.Find(LayerTag);
-	if (!RegistryAsset)
+	const TSoftObjectPtr<UMUIWidgetRegistry>* Registry = LayerRegistries.Find(LayerTag);
+	if (!Registry)
 	{
-		OutRegistryAsset.Reset();
+		OutRegistry.Reset();
 		return false;
 	}
 
-	OutRegistryAsset = *RegistryAsset;
+	OutRegistry = *Registry;
 	return true;
 }

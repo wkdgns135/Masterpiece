@@ -8,12 +8,12 @@
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
 #endif
-#include "MUIWidgetRegistryDataAsset.generated.h"
+#include "MUIWidgetRegistry.generated.h"
 
 class UMTaggedWidget;
 
 UCLASS(BlueprintType)
-class MASTERPIECE_API UMUIWidgetRegistryDataAsset : public UPrimaryDataAsset
+class MASTERPIECE_API UMUIWidgetRegistry : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 

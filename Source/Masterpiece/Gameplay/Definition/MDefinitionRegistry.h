@@ -6,17 +6,17 @@
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
 #endif
-#include "MDefinitionRegistryDataAsset.generated.h"
+#include "MDefinitionRegistry.generated.h"
 
-class UMDefinitionCollectionDataAsset;
+class UMDefinitionCollection;
 
 UCLASS(BlueprintType)
-class MASTERPIECE_API UMDefinitionRegistryDataAsset : public UPrimaryDataAsset
+class MASTERPIECE_API UMDefinitionRegistry : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	bool GetCollectionEntries(TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>>& OutEntries) const;
+	bool GetCollectionEntries(TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>>& OutEntries) const;
 
 #if WITH_EDITOR
 	virtual EDataValidationResult IsDataValid(FDataValidationContext& Context) const override;
@@ -24,5 +24,5 @@ public:
 
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Definition", meta=(AllowPrivateAccess="true"))
-	TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>> CollectionEntries;
+	TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>> CollectionEntries;
 };

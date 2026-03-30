@@ -1,4 +1,4 @@
-#include "Gameplay/Character/Player/Skill/MSkillTreeDataAsset.h"
+#include "Gameplay/Character/Player/Skill/MSkillDefinitionCollection.h"
 
 #include "Gameplay/Character/Player/Skill/MSkillDefinition.h"
 #include "Gameplay/Definition/MDefinitionObject.h"
@@ -11,12 +11,12 @@ bool IsValidRequiredCharacterLevel(const int32 Level)
 }
 }
 
-const TArray<TObjectPtr<UMSkillDefinition>>& UMSkillTreeDataAsset::GetSkillDefinitions() const
+const TArray<TObjectPtr<UMSkillDefinition>>& UMSkillDefinitionCollection::GetSkillDefinitions() const
 {
 	return SkillDefinitions;
 }
 
-UMSkillDefinition* UMSkillTreeDataAsset::FindSkillDefinitionByTag(const FGameplayTag SkillTag) const
+UMSkillDefinition* UMSkillDefinitionCollection::FindSkillDefinitionByTag(const FGameplayTag SkillTag) const
 {
 	if (!SkillTag.IsValid())
 	{
@@ -39,7 +39,7 @@ UMSkillDefinition* UMSkillTreeDataAsset::FindSkillDefinitionByTag(const FGamepla
 	return nullptr;
 }
 
-void UMSkillTreeDataAsset::GetDefinitions(TArray<UMDefinitionObject*>& OutDefinitions) const
+void UMSkillDefinitionCollection::GetDefinitions(TArray<UMDefinitionObject*>& OutDefinitions) const
 {
 	OutDefinitions.Reset();
 	OutDefinitions.Reserve(SkillDefinitions.Num());
@@ -54,7 +54,7 @@ void UMSkillTreeDataAsset::GetDefinitions(TArray<UMDefinitionObject*>& OutDefini
 }
 
 #if WITH_EDITOR
-EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& Context) const
+EDataValidationResult UMSkillDefinitionCollection::IsDataValid(FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
 
@@ -69,7 +69,7 @@ EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& 
 		UMSkillDefinition* SkillDefinition = SkillDefinitions[Index];
 		if (!SkillDefinition)
 		{
-			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill tree contains an empty skill definition at index %d."), Index)));
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill definition collection contains an empty skill definition at index %d."), Index)));
 			bHasError = true;
 			continue;
 		}
@@ -84,7 +84,7 @@ EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& 
 
 		if (SkillDefinitionByTag.Contains(SkillTag))
 		{
-			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill tree contains a duplicated skill tag: %s"), *SkillTag.ToString())));
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill definition collection contains a duplicated skill tag: %s"), *SkillTag.ToString())));
 			bHasError = true;
 			continue;
 		}
@@ -183,7 +183,7 @@ EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& 
 
 	if (ProcessedCount != InDegreeByTag.Num())
 	{
-		Context.AddError(FText::FromString(TEXT("Skill tree contains a cyclic prerequisite graph. (DAG violation)")));
+		Context.AddError(FText::FromString(TEXT("Skill definition collection contains a cyclic prerequisite graph. (DAG violation)")));
 		bHasError = true;
 	}
 

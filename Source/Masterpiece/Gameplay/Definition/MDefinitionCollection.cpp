@@ -1,13 +1,13 @@
-#include "Gameplay/Definition/MDefinitionCollectionDataAsset.h"
+#include "Gameplay/Definition/MDefinitionCollection.h"
 
 #include "Gameplay/Definition/MDefinitionObject.h"
 
-FGameplayTag UMDefinitionCollectionDataAsset::GetCollectionTag() const
+FGameplayTag UMDefinitionCollection::GetCollectionTag() const
 {
 	return CollectionTag;
 }
 
-void UMDefinitionCollectionDataAsset::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+void UMDefinitionCollection::GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
 {
 	if (CollectionTag.IsValid())
 	{
@@ -15,12 +15,12 @@ void UMDefinitionCollectionDataAsset::GetOwnedGameplayTags(FGameplayTagContainer
 	}
 }
 
-void UMDefinitionCollectionDataAsset::GetDefinitions(TArray<UMDefinitionObject*>& OutDefinitions) const
+void UMDefinitionCollection::GetDefinitions(TArray<UMDefinitionObject*>& OutDefinitions) const
 {
 	OutDefinitions.Reset();
 }
 
-bool UMDefinitionCollectionDataAsset::FindDefinitionByTag(const FGameplayTag DefinitionTag, UMDefinitionObject*& OutDefinition) const
+bool UMDefinitionCollection::FindDefinitionByTag(const FGameplayTag DefinitionTag, UMDefinitionObject*& OutDefinition) const
 {
 	OutDefinition = nullptr;
 	if (!DefinitionTag.IsValid())

@@ -2,12 +2,12 @@
 
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
-#include "Gameplay/Definition/MDefinitionCollectionDataAsset.h"
+#include "Gameplay/Definition/MDefinitionCollection.h"
 #include "Gameplay/Definition/MDefinitionDeveloperSettings.h"
 #include "Gameplay/Definition/MDefinitionObject.h"
-#include "Gameplay/Definition/MDefinitionRegistryDataAsset.h"
+#include "Gameplay/Definition/MDefinitionRegistry.h"
 
-UMDefinitionCollectionDataAsset* UMDefinitionSubsystem::GetCollectionByTag(const FGameplayTag CollectionTag) const
+UMDefinitionCollection* UMDefinitionSubsystem::GetCollectionByTag(const FGameplayTag CollectionTag) const
 {
 	if (!CollectionTag.IsValid())
 	{
@@ -32,7 +32,7 @@ UMDefinitionObject* UMDefinitionSubsystem::GetDefinitionByTag(const FGameplayTag
 		return LoadedDefinition->Get();
 	}
 
-	for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>>& Pair : CollectionAssetsByTag)
+	for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>>& Pair : CollectionAssetsByTag)
 	{
 		if (!Pair.Key.IsValid())
 		{
@@ -60,13 +60,13 @@ bool UMDefinitionSubsystem::LoadCollectionByTagAsync(const FGameplayTag Collecti
 
 	EnsureRegistryInitialized();
 
-	if (const TObjectPtr<UMDefinitionCollectionDataAsset>* LoadedCollection = LoadedCollectionsByTag.Find(CollectionTag))
+	if (const TObjectPtr<UMDefinitionCollection>* LoadedCollection = LoadedCollectionsByTag.Find(CollectionTag))
 	{
 		Callback.ExecuteIfBound(LoadedCollection->Get());
 		return LoadedCollection->Get() != nullptr;
 	}
 
-	const TSoftObjectPtr<UMDefinitionCollectionDataAsset>* CollectionAsset = CollectionAssetsByTag.Find(CollectionTag);
+	const TSoftObjectPtr<UMDefinitionCollection>* CollectionAsset = CollectionAssetsByTag.Find(CollectionTag);
 	if (!CollectionAsset || CollectionAsset->IsNull())
 	{
 		Callback.ExecuteIfBound(nullptr);
@@ -98,7 +98,7 @@ bool UMDefinitionSubsystem::LoadCollectionByTagAsync(const FGameplayTag Collecti
 
 	if (!Handle.IsValid())
 	{
-		UMDefinitionCollectionDataAsset* LoadedCollection = LoadCollectionByTagSync(CollectionTag);
+		UMDefinitionCollection* LoadedCollection = LoadCollectionByTagSync(CollectionTag);
 		ExecutePendingCollectionCallbacks(CollectionTag, LoadedCollection);
 		return LoadedCollection != nullptr;
 	}
@@ -137,23 +137,23 @@ void UMDefinitionSubsystem::EnsureRegistryInitialized() const
 		return;
 	}
 
-	for (const TSoftObjectPtr<UMDefinitionRegistryDataAsset>& RegistryAsset : DefinitionSettings->GetDefinitionRegistries())
+	for (const TSoftObjectPtr<UMDefinitionRegistry>& RegistryAsset : DefinitionSettings->GetDefinitionRegistries())
 	{
 		if (RegistryAsset.IsNull())
 		{
 			continue;
 		}
 
-		const UMDefinitionRegistryDataAsset* LoadedRegistry = RegistryAsset.LoadSynchronous();
+		const UMDefinitionRegistry* LoadedRegistry = RegistryAsset.LoadSynchronous();
 		if (!LoadedRegistry)
 		{
 			continue;
 		}
 
-		TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>> RegistryEntries;
+		TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>> RegistryEntries;
 		LoadedRegistry->GetCollectionEntries(RegistryEntries);
 
-		for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>>& Entry : RegistryEntries)
+		for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>>& Entry : RegistryEntries)
 		{
 			if (!Entry.Key.IsValid() || Entry.Value.IsNull())
 			{
@@ -171,20 +171,20 @@ void UMDefinitionSubsystem::EnsureRegistryInitialized() const
 	}
 }
 
-UMDefinitionCollectionDataAsset* UMDefinitionSubsystem::LoadCollectionByTagSync(const FGameplayTag CollectionTag) const
+UMDefinitionCollection* UMDefinitionSubsystem::LoadCollectionByTagSync(const FGameplayTag CollectionTag) const
 {
-	if (const TObjectPtr<UMDefinitionCollectionDataAsset>* LoadedCollection = LoadedCollectionsByTag.Find(CollectionTag))
+	if (const TObjectPtr<UMDefinitionCollection>* LoadedCollection = LoadedCollectionsByTag.Find(CollectionTag))
 	{
 		return LoadedCollection->Get();
 	}
 
-	const TSoftObjectPtr<UMDefinitionCollectionDataAsset>* CollectionAsset = CollectionAssetsByTag.Find(CollectionTag);
+	const TSoftObjectPtr<UMDefinitionCollection>* CollectionAsset = CollectionAssetsByTag.Find(CollectionTag);
 	if (!CollectionAsset || CollectionAsset->IsNull())
 	{
 		return nullptr;
 	}
 
-	UMDefinitionCollectionDataAsset* LoadedCollection = CollectionAsset->LoadSynchronous();
+	UMDefinitionCollection* LoadedCollection = CollectionAsset->LoadSynchronous();
 	if (!LoadedCollection)
 	{
 		return nullptr;
@@ -199,11 +199,11 @@ void UMDefinitionSubsystem::HandleCollectionAsyncLoadComplete(const FGameplayTag
 {
 	LoadingCollectionHandles.Remove(CollectionTag);
 
-	UMDefinitionCollectionDataAsset* LoadedCollection = LoadCollectionByTagSync(CollectionTag);
+	UMDefinitionCollection* LoadedCollection = LoadCollectionByTagSync(CollectionTag);
 	ExecutePendingCollectionCallbacks(CollectionTag, LoadedCollection);
 }
 
-void UMDefinitionSubsystem::IndexDefinitionsFromCollection(UMDefinitionCollectionDataAsset* LoadedCollection) const
+void UMDefinitionSubsystem::IndexDefinitionsFromCollection(UMDefinitionCollection* LoadedCollection) const
 {
 	if (!LoadedCollection)
 	{
@@ -231,7 +231,7 @@ void UMDefinitionSubsystem::IndexDefinitionsFromCollection(UMDefinitionCollectio
 	}
 }
 
-void UMDefinitionSubsystem::ExecutePendingCollectionCallbacks(const FGameplayTag CollectionTag, UMDefinitionCollectionDataAsset* LoadedCollection)
+void UMDefinitionSubsystem::ExecutePendingCollectionCallbacks(const FGameplayTag CollectionTag, UMDefinitionCollection* LoadedCollection)
 {
 	TArray<FOnDefinitionCollectionLoaded> Callbacks;
 	PendingCollectionCallbacks.RemoveAndCopyValue(CollectionTag, Callbacks);

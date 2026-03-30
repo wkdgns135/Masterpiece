@@ -1,20 +1,20 @@
-#include "Gameplay/Definition/MDefinitionRegistryDataAsset.h"
+#include "Gameplay/Definition/MDefinitionRegistry.h"
 
-#include "Gameplay/Definition/MDefinitionCollectionDataAsset.h"
+#include "Gameplay/Definition/MDefinitionCollection.h"
 
-bool UMDefinitionRegistryDataAsset::GetCollectionEntries(TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>>& OutEntries) const
+bool UMDefinitionRegistry::GetCollectionEntries(TMap<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>>& OutEntries) const
 {
 	OutEntries = CollectionEntries;
 	return OutEntries.Num() > 0;
 }
 
 #if WITH_EDITOR
-EDataValidationResult UMDefinitionRegistryDataAsset::IsDataValid(FDataValidationContext& Context) const
+EDataValidationResult UMDefinitionRegistry::IsDataValid(FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
 
 	bool bHasError = false;
-	for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollectionDataAsset>>& Pair : CollectionEntries)
+	for (const TPair<FGameplayTag, TSoftObjectPtr<UMDefinitionCollection>>& Pair : CollectionEntries)
 	{
 		if (!Pair.Key.IsValid())
 		{
@@ -30,7 +30,7 @@ EDataValidationResult UMDefinitionRegistryDataAsset::IsDataValid(FDataValidation
 			continue;
 		}
 
-		const UMDefinitionCollectionDataAsset* CollectionAsset = Pair.Value.LoadSynchronous();
+		const UMDefinitionCollection* CollectionAsset = Pair.Value.LoadSynchronous();
 		if (!CollectionAsset)
 		{
 			Context.AddError(FText::FromString(FString::Printf(TEXT("%s: registry entry failed to load its collection asset."), *Pair.Key.ToString())));

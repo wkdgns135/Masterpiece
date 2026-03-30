@@ -7,7 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Gameplay/UI/MUIDeveloperSettings.h"
 #include "Gameplay/UI/MUIGameplayTags.h"
-#include "Gameplay/UI/MUIWidgetRegistryDataAsset.h"
+#include "Gameplay/UI/MUIWidgetRegistry.h"
 #include "Gameplay/UI/Widget/MTaggedWidget.h"
 #include "Gameplay/UI/Widget/MUIStackableWidget.h"
 
@@ -228,7 +228,7 @@ bool UMUIManagerSubsystem::PopTopWidgetInternal(const FGameplayTag LayerTag)
 	return true;
 }
 
-const UMUIWidgetRegistryDataAsset* UMUIManagerSubsystem::GetWidgetRegistryForLayer(const FGameplayTag LayerTag)
+const UMUIWidgetRegistry* UMUIManagerSubsystem::GetWidgetRegistryForLayer(const FGameplayTag LayerTag)
 {
 	const UMUIDeveloperSettings* UISettings = GetDefault<UMUIDeveloperSettings>();
 	if (!UISettings || !LayerTag.IsValid())
@@ -236,18 +236,18 @@ const UMUIWidgetRegistryDataAsset* UMUIManagerSubsystem::GetWidgetRegistryForLay
 		return nullptr;
 	}
 
-	if (const TObjectPtr<UMUIWidgetRegistryDataAsset>* LoadedRegistry = LoadedLayerRegistries.Find(LayerTag))
+	if (const TObjectPtr<UMUIWidgetRegistry>* LoadedRegistry = LoadedLayerRegistries.Find(LayerTag))
 	{
 		return LoadedRegistry->Get();
 	}
 
-	TSoftObjectPtr<UMUIWidgetRegistryDataAsset> RegistryAsset;
-	if (!UISettings->FindWidgetRegistryAssetByLayerTag(LayerTag, RegistryAsset) || RegistryAsset.IsNull())
+	TSoftObjectPtr<UMUIWidgetRegistry> Registry;
+	if (!UISettings->FindWidgetRegistryByLayerTag(LayerTag, Registry) || Registry.IsNull())
 	{
 		return nullptr;
 	}
 
-	UMUIWidgetRegistryDataAsset* LoadedRegistry = RegistryAsset.LoadSynchronous();
+	UMUIWidgetRegistry* LoadedRegistry = Registry.LoadSynchronous();
 	if (!LoadedRegistry)
 	{
 		return nullptr;
@@ -266,6 +266,6 @@ TSubclassOf<UMTaggedWidget> UMUIManagerSubsystem::ResolveWidgetClassByTag(const 
 	}
 
 	UMUIManagerSubsystem* MutableThis = const_cast<UMUIManagerSubsystem*>(this);
-	const UMUIWidgetRegistryDataAsset* WidgetRegistry = MutableThis->GetWidgetRegistryForLayer(LayerTag);
+	const UMUIWidgetRegistry* WidgetRegistry = MutableThis->GetWidgetRegistryForLayer(LayerTag);
 	return WidgetRegistry ? WidgetRegistry->FindWidgetClassByTag(WidgetTag) : nullptr;
 }
