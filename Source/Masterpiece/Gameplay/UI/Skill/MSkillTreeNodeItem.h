@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,12 +6,25 @@
 #include "UObject/Object.h"
 #include "MSkillTreeNodeItem.generated.h"
 
+class UMSkillInstance;
+
 UCLASS(BlueprintType)
 class MASTERPIECE_API UMSkillTreeNodeItem : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	void SetSkillInstance(UMSkillInstance* InSkillInstance);
+
+	UFUNCTION(BlueprintPure, Category="Skill")
+	UMSkillInstance* GetSkillInstance() const;
+
+	void RefreshFromSkillInstance();
+
+public:
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	TObjectPtr<UMSkillInstance> SkillInstance;
+
 	UPROPERTY(BlueprintReadOnly, Category="Skill")
 	FGameplayTag SkillTag;
 
@@ -52,4 +63,16 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category="Skill")
 	bool bPassive = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	bool bUnlocked = true;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	bool bEquipped = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	int32 CurrentRank = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	FGameplayTag AssignedSlotTag;
 };

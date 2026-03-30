@@ -7,7 +7,8 @@
 #include "Gameplay/UI/Widget/MActivatableWidget.h"
 #include "MSkillTreeWidget.generated.h"
 
-class UCanvasPanel;
+class UPanelWidget;
+class UMSkillInstance;
 class UMSkillTreeNodeItem;
 class UMSkillTreeNodeWidget;
 class UMPlayerSkillComponent;
@@ -32,17 +33,18 @@ public:
 	void RefreshSkillTreeView();
 
 protected:
+	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
 		FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 
 private:
 	void BindSkillComponentEvents();
 	void UnbindSkillComponentEvents();
-	void HandleSkillLoadoutChanged();
+	void HandleSkillStateChanged();
 	void BuildSkillGraphModel(TArray<TObjectPtr<UMSkillTreeNodeItem>>& OutNodes);
+	void BuildPreviewGraphModel(TArray<TObjectPtr<UMSkillTreeNodeItem>>& OutNodes) const;
 	void LayoutSkillGraphNodes(TArray<TObjectPtr<UMSkillTreeNodeItem>>& InOutNodes, const FVector2D& AvailableSize) const;
 	void SynchronizeGraphWidgets(const TArray<TObjectPtr<UMSkillTreeNodeItem>>& Nodes);
 	void UpdateNodeWidgetLayout(UMSkillTreeNodeWidget* NodeWidget, const UMSkillTreeNodeItem* Node) const;
@@ -52,7 +54,7 @@ private:
 
 private:
 	UPROPERTY(meta=(BindWidgetOptional))
-	TObjectPtr<UCanvasPanel> SkillGraphCanvas;
+	TObjectPtr<UPanelWidget> SkillGraphCanvas;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree", meta=(AllowPrivateAccess="true"))
 	TSubclassOf<UMSkillTreeNodeWidget> SkillTreeNodeWidgetClass;
@@ -68,6 +70,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Layout", meta=(AllowPrivateAccess="true"))
 	FVector2D FallbackCanvasSize = FVector2D(1920.0f, 1080.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Preview", meta=(AllowPrivateAccess="true"))
+	bool bEnableDesignerPreview = true;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Edge", meta=(AllowPrivateAccess="true", ClampMin="0.5", UIMin="0.5"))
 	float EdgeThickness = 2.0f;
@@ -85,7 +90,4 @@ private:
 
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UMSkillTreeNodeWidget>> NodeWidgetByTag;
-
-	UPROPERTY(Transient)
-	FVector2D CachedCanvasSize = FVector2D::ZeroVector;
 };

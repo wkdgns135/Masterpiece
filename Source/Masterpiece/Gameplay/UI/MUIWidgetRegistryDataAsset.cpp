@@ -8,7 +8,7 @@
 namespace
 {
 #if WITH_EDITOR
-void AddValidationError(FDataValidationContext& Context, const FString& Message)
+void AddWidgetRegistryValidationError(FDataValidationContext& Context, const FString& Message)
 {
 	Context.AddError(FText::FromString(Message));
 }
@@ -37,14 +37,14 @@ EDataValidationResult UMUIWidgetRegistryDataAsset::IsDataValid(FDataValidationCo
 	{
 		if (!Pair.Key.IsValid())
 		{
-			AddValidationError(Context, TEXT("WidgetEntries contains an invalid widget tag key."));
+			AddWidgetRegistryValidationError(Context, TEXT("WidgetEntries contains an invalid widget tag key."));
 			bHasError = true;
 			continue;
 		}
 
 		if (Pair.Value.IsNull())
 		{
-			AddValidationError(Context, FString::Printf(TEXT("%s: WidgetClass is not assigned."), *Pair.Key.ToString()));
+			AddWidgetRegistryValidationError(Context, FString::Printf(TEXT("%s: WidgetClass is not assigned."), *Pair.Key.ToString()));
 			bHasError = true;
 			continue;
 		}
@@ -52,7 +52,7 @@ EDataValidationResult UMUIWidgetRegistryDataAsset::IsDataValid(FDataValidationCo
 		const TSubclassOf<UMTaggedWidget> WidgetClass = Pair.Value.LoadSynchronous();
 		if (!WidgetClass)
 		{
-			AddValidationError(Context, FString::Printf(TEXT("%s: WidgetClass could not be loaded."), *Pair.Key.ToString()));
+			AddWidgetRegistryValidationError(Context, FString::Printf(TEXT("%s: WidgetClass could not be loaded."), *Pair.Key.ToString()));
 			bHasError = true;
 			continue;
 		}
@@ -60,14 +60,14 @@ EDataValidationResult UMUIWidgetRegistryDataAsset::IsDataValid(FDataValidationCo
 		const UMTaggedWidget* WidgetCDO = WidgetClass->GetDefaultObject<UMTaggedWidget>();
 		if (!WidgetCDO)
 		{
-			AddValidationError(Context, FString::Printf(TEXT("%s: WidgetClass default object is invalid."), *Pair.Key.ToString()));
+			AddWidgetRegistryValidationError(Context, FString::Printf(TEXT("%s: WidgetClass default object is invalid."), *Pair.Key.ToString()));
 			bHasError = true;
 			continue;
 		}
 
 		if (WidgetCDO->GetWidgetTag() != Pair.Key)
 		{
-			AddValidationError(Context, FString::Printf(TEXT("%s: registry tag does not match widget tag (%s)."),
+			AddWidgetRegistryValidationError(Context, FString::Printf(TEXT("%s: registry tag does not match widget tag (%s)."),
 				*Pair.Key.ToString(),
 				*WidgetCDO->GetWidgetTag().ToString()));
 			bHasError = true;

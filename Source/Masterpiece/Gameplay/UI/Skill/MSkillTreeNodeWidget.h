@@ -1,11 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "MSkillTreeNodeWidget.generated.h"
 
+class UMSkillInstance;
 class UMSkillTreeNodeItem;
 
 UCLASS(Abstract, Blueprintable)
@@ -20,9 +19,15 @@ public:
 	UFUNCTION(BlueprintPure, Category="SkillTree")
 	UMSkillTreeNodeItem* GetNodeItem() const;
 
+	UFUNCTION(BlueprintPure, Category="SkillTree")
+	UMSkillInstance* GetSkillInstance() const;
+
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="SkillTree")
 	void K2_OnNodeItemSet(UMSkillTreeNodeItem* InNodeItem);
+
+	UFUNCTION(BlueprintImplementableEvent, Category="SkillTree")
+	void K2_OnSkillInstanceSet(UMSkillInstance* InSkillInstance);
 
 private:
 	UPROPERTY(Transient)

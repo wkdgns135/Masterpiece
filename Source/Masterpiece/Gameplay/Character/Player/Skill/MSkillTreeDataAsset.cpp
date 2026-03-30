@@ -1,9 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Gameplay/Character/Player/Skill/MSkillTreeDataAsset.h"
 
 #include "Gameplay/Character/Player/Skill/MSkillDefinition.h"
-#include "Misc/DataValidation.h"
+#include "Gameplay/Definition/MDefinitionObject.h"
 
 namespace
 {
@@ -11,139 +9,138 @@ bool IsValidRequiredCharacterLevel(const int32 Level)
 {
 	return Level == 1 || (Level > 0 && Level % 5 == 0);
 }
-
-void AddValidationError(FDataValidationContext& Context, const FString& Message)
-{
-	Context.AddError(FText::FromString(Message));
-}
 }
 
-bool UMSkillTreeDataAsset::GetAllSkillDefinitions(TArray<const FMSkillDefinitionBase*>& OutDefinitions, TArray<bool>& OutPassiveFlags) const
+const TArray<TObjectPtr<UMSkillDefinition>>& UMSkillTreeDataAsset::GetSkillDefinitions() const
 {
-	OutDefinitions.Reset();
-	OutPassiveFlags.Reset();
-	OutDefinitions.Reserve(Skills.Num());
-	OutPassiveFlags.Reserve(Skills.Num());
+	return SkillDefinitions;
+}
 
-	for (const FInstancedStruct& SkillEntry : Skills)
+UMSkillDefinition* UMSkillTreeDataAsset::FindSkillDefinitionByTag(const FGameplayTag SkillTag) const
+{
+	if (!SkillTag.IsValid())
 	{
-		if (const FMSkillDefinitionActive* ActiveDefinition = SkillEntry.GetPtr<FMSkillDefinitionActive>())
-		{
-			OutDefinitions.Add(ActiveDefinition);
-			OutPassiveFlags.Add(false);
-			continue;
-		}
-
-		if (const FMSkillDefinitionPassive* PassiveDefinition = SkillEntry.GetPtr<FMSkillDefinitionPassive>())
-		{
-			OutDefinitions.Add(PassiveDefinition);
-			OutPassiveFlags.Add(true);
-			continue;
-		}
-
-		return false;
+		return nullptr;
 	}
 
-	return true;
+	for (UMSkillDefinition* SkillDefinition : SkillDefinitions)
+	{
+		if (!SkillDefinition)
+		{
+			continue;
+		}
+
+		if (SkillDefinition->GetSkillTag().MatchesTagExact(SkillTag))
+		{
+			return SkillDefinition;
+		}
+	}
+
+	return nullptr;
+}
+
+void UMSkillTreeDataAsset::GetDefinitions(TArray<UMDefinitionObject*>& OutDefinitions) const
+{
+	OutDefinitions.Reset();
+	OutDefinitions.Reserve(SkillDefinitions.Num());
+
+	for (UMSkillDefinition* SkillDefinition : SkillDefinitions)
+	{
+		if (SkillDefinition)
+		{
+			OutDefinitions.Add(SkillDefinition);
+		}
+	}
 }
 
 #if WITH_EDITOR
 EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& Context) const
 {
 	Super::IsDataValid(Context);
+
 	bool bHasError = false;
-
-	TArray<const FMSkillDefinitionBase*> Definitions;
-	TArray<bool> PassiveFlags;
-	if (!GetAllSkillDefinitions(Definitions, PassiveFlags))
-	{
-		AddValidationError(Context, TEXT("지원하지 않는 스킬 정의 타입이 포함되어 있습니다."));
-		bHasError = true;
-		return EDataValidationResult::Invalid;
-	}
-
-	TMap<FGameplayTag, int32> SkillIndexByTag;
+	TMap<FGameplayTag, UMSkillDefinition*> SkillDefinitionByTag;
 	TMap<FGameplayTag, int32> SkillLevelByTag;
-	SkillIndexByTag.Reserve(Definitions.Num());
-	SkillLevelByTag.Reserve(Definitions.Num());
-
-	for (int32 Index = 0; Index < Definitions.Num(); ++Index)
-	{
-		const FMSkillDefinitionBase* Definition = Definitions[Index];
-		if (!Definition)
-		{
-			AddValidationError(Context, FString::Printf(TEXT("Index %d: 스킬 정의가 비어 있습니다."), Index));
-			bHasError = true;
-			continue;
-		}
-
-		if (!Definition->SkillTag.IsValid())
-		{
-			AddValidationError(Context, FString::Printf(TEXT("Index %d: SkillTag가 유효하지 않습니다."), Index));
-			bHasError = true;
-			continue;
-		}
-
-		if (SkillIndexByTag.Contains(Definition->SkillTag))
-		{
-			AddValidationError(Context, FString::Printf(TEXT("중복 SkillTag가 있습니다: %s"), *Definition->SkillTag.ToString()));
-			bHasError = true;
-		}
-		else
-		{
-			SkillIndexByTag.Add(Definition->SkillTag, Index);
-			SkillLevelByTag.Add(Definition->SkillTag, Definition->RequiredCharacterLevel);
-		}
-
-		if (!IsValidRequiredCharacterLevel(Definition->RequiredCharacterLevel))
-		{
-			AddValidationError(Context, FString::Printf(TEXT("%s: RequiredCharacterLevel은 1 또는 5의 배수여야 합니다. 현재값=%d"), *Definition->SkillTag.ToString(), Definition->RequiredCharacterLevel));
-			bHasError = true;
-		}
-	}
-
 	TMap<FGameplayTag, int32> InDegreeByTag;
 	TMap<FGameplayTag, TArray<FGameplayTag>> ChildrenByParentTag;
-	for (const TPair<FGameplayTag, int32>& Pair : SkillIndexByTag)
+
+	for (int32 Index = 0; Index < SkillDefinitions.Num(); ++Index)
 	{
-		InDegreeByTag.Add(Pair.Key, 0);
+		UMSkillDefinition* SkillDefinition = SkillDefinitions[Index];
+		if (!SkillDefinition)
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill tree contains an empty skill definition at index %d."), Index)));
+			bHasError = true;
+			continue;
+		}
+
+		const FGameplayTag SkillTag = SkillDefinition->GetSkillTag();
+		if (!SkillTag.IsValid())
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill definition at index %d has an invalid SkillTag."), Index)));
+			bHasError = true;
+			continue;
+		}
+
+		if (SkillDefinitionByTag.Contains(SkillTag))
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("Skill tree contains a duplicated skill tag: %s"), *SkillTag.ToString())));
+			bHasError = true;
+			continue;
+		}
+
+		if (!IsValidRequiredCharacterLevel(SkillDefinition->GetRequiredCharacterLevel()))
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("%s: RequiredCharacterLevel must be 1 or a multiple of 5. Current value: %d"),
+				*SkillTag.ToString(),
+				SkillDefinition->GetRequiredCharacterLevel())));
+			bHasError = true;
+		}
+
+		SkillDefinitionByTag.Add(SkillTag, SkillDefinition);
+		SkillLevelByTag.Add(SkillTag, SkillDefinition->GetRequiredCharacterLevel());
+		InDegreeByTag.Add(SkillTag, 0);
 	}
 
-	for (const FMSkillDefinitionBase* Definition : Definitions)
+	for (const TPair<FGameplayTag, UMSkillDefinition*>& Pair : SkillDefinitionByTag)
 	{
-		if (!Definition || !Definition->SkillTag.IsValid())
+		const FGameplayTag SkillTag = Pair.Key;
+		const UMSkillDefinition* SkillDefinition = Pair.Value;
+		if (!SkillDefinition)
 		{
 			continue;
 		}
 
-		for (const FMSkillPrerequisite& Prerequisite : Definition->Prerequisites)
+		for (const TPair<FGameplayTag, int32>& PrerequisitePair : SkillDefinition->GetPrerequisiteSkillRanks())
 		{
-			if (!Prerequisite.SkillTag.IsValid())
+			if (!PrerequisitePair.Key.IsValid())
 			{
-				AddValidationError(Context, FString::Printf(TEXT("%s: Prerequisite SkillTag가 유효하지 않습니다."), *Definition->SkillTag.ToString()));
+				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: prerequisite tag is invalid."), *SkillTag.ToString())));
 				bHasError = true;
 				continue;
 			}
 
-			const int32* ParentIndex = SkillIndexByTag.Find(Prerequisite.SkillTag);
-			if (!ParentIndex)
+			if (!SkillDefinitionByTag.Contains(PrerequisitePair.Key))
 			{
-				AddValidationError(Context, FString::Printf(TEXT("%s: 존재하지 않는 부모 스킬 참조: %s"), *Definition->SkillTag.ToString(), *Prerequisite.SkillTag.ToString()));
+				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: references a missing prerequisite skill %s."),
+					*SkillTag.ToString(),
+					*PrerequisitePair.Key.ToString())));
 				bHasError = true;
 				continue;
 			}
 
-			const int32* ParentLevel = SkillLevelByTag.Find(Prerequisite.SkillTag);
-			const int32* ChildLevel = SkillLevelByTag.Find(Definition->SkillTag);
-			if (ParentLevel && ChildLevel && !(*ParentLevel < *ChildLevel))
+			const int32 ParentLevel = SkillLevelByTag.FindRef(PrerequisitePair.Key);
+			const int32 ChildLevel = SkillLevelByTag.FindRef(SkillTag);
+			if (!(ParentLevel < ChildLevel))
 			{
-				AddValidationError(Context, FString::Printf(TEXT("%s: 부모(%s) RequiredCharacterLevel(%d)은 자식 레벨(%d)보다 반드시 작아야 합니다."),
-					*Definition->SkillTag.ToString(), *Prerequisite.SkillTag.ToString(), *ParentLevel, *ChildLevel));
+				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: prerequisite %s must have a lower RequiredCharacterLevel."),
+					*SkillTag.ToString(),
+					*PrerequisitePair.Key.ToString())));
 				bHasError = true;
 			}
 
-			InDegreeByTag.FindOrAdd(Definition->SkillTag) += 1;
-			ChildrenByParentTag.FindOrAdd(Prerequisite.SkillTag).Add(Definition->SkillTag);
+			InDegreeByTag.FindOrAdd(SkillTag) += 1;
+			ChildrenByParentTag.FindOrAdd(PrerequisitePair.Key).Add(SkillTag);
 		}
 	}
 
@@ -186,7 +183,7 @@ EDataValidationResult UMSkillTreeDataAsset::IsDataValid(FDataValidationContext& 
 
 	if (ProcessedCount != InDegreeByTag.Num())
 	{
-		AddValidationError(Context, TEXT("스킬 트리에 순환 참조가 있습니다. (DAG 위반)"));
+		Context.AddError(FText::FromString(TEXT("Skill tree contains a cyclic prerequisite graph. (DAG violation)")));
 		bHasError = true;
 	}
 
