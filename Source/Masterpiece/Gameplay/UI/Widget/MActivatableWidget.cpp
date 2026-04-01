@@ -12,14 +12,12 @@ UMActivatableWidget::UMActivatableWidget(const FObjectInitializer& ObjectInitial
 
 void UMActivatableWidget::ActivateWidget()
 {
-	SetVisibility(ESlateVisibility::Visible);
 	ApplyInputPolicy();
 	K2_OnWidgetActivated();
 }
 
 void UMActivatableWidget::DeactivateWidget()
 {
-	SetVisibility(ESlateVisibility::Collapsed);
 	K2_OnWidgetDeactivated();
 }
 

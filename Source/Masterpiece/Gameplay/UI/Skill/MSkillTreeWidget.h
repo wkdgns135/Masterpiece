@@ -9,7 +9,6 @@
 
 class UPanelWidget;
 class UMSkillInstance;
-class UMSkillTreeNodeItem;
 class UMSkillTreeNodeWidget;
 class UMPlayerSkillComponent;
 class AMPlayerCharacterBase;
@@ -33,7 +32,6 @@ public:
 	void RefreshSkillTreeView();
 
 protected:
-	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual int32 NativePaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect,
@@ -43,11 +41,12 @@ private:
 	void BindSkillComponentEvents();
 	void UnbindSkillComponentEvents();
 	void HandleSkillStateChanged();
-	void BuildSkillGraphModel(TArray<TObjectPtr<UMSkillTreeNodeItem>>& OutNodes);
-	void BuildPreviewGraphModel(TArray<TObjectPtr<UMSkillTreeNodeItem>>& OutNodes) const;
-	void LayoutSkillGraphNodes(TArray<TObjectPtr<UMSkillTreeNodeItem>>& InOutNodes, const FVector2D& AvailableSize) const;
-	void SynchronizeGraphWidgets(const TArray<TObjectPtr<UMSkillTreeNodeItem>>& Nodes);
-	void UpdateNodeWidgetLayout(UMSkillTreeNodeWidget* NodeWidget, const UMSkillTreeNodeItem* Node) const;
+	void BuildSkillGraphModel(TArray<UMSkillInstance*>& OutSkillInstances) const;
+	void LayoutSkillGraphNodes(const TArray<UMSkillInstance*>& SkillInstances, const FVector2D& AvailableSize,
+		TMap<FGameplayTag, int32>& OutLayerByTag, TMap<FGameplayTag, int32>& OutColumnByTag, TMap<FGameplayTag, FVector2D>& OutPositionByTag) const;
+	void SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& SkillInstances, const TMap<FGameplayTag, int32>& LayerByTag,
+		const TMap<FGameplayTag, int32>& ColumnByTag, const TMap<FGameplayTag, FVector2D>& PositionByTag);
+	void UpdateNodeWidgetLayout(UMSkillTreeNodeWidget* NodeWidget, int32 Row, int32 Column, const FVector2D& Position) const;
 	void ClearGraphWidgets();
 	FVector2D ResolveGraphCanvasSize() const;
 	bool HasMeaningfulCanvasSize(const FVector2D& InSize) const;
@@ -71,9 +70,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Layout", meta=(AllowPrivateAccess="true"))
 	FVector2D FallbackCanvasSize = FVector2D(1920.0f, 1080.0f);
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Preview", meta=(AllowPrivateAccess="true"))
-	bool bEnableDesignerPreview = true;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SkillTree|Edge", meta=(AllowPrivateAccess="true", ClampMin="0.5", UIMin="0.5"))
 	float EdgeThickness = 2.0f;
 
@@ -84,9 +80,6 @@ private:
 	TObjectPtr<AMPlayerCharacterBase> BoundPlayerCharacter;
 
 	TWeakObjectPtr<UMPlayerSkillComponent> BoundSkillComponent;
-
-	UPROPERTY(Transient)
-	TArray<TObjectPtr<UMSkillTreeNodeItem>> GraphNodes;
 
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UMSkillTreeNodeWidget>> NodeWidgetByTag;

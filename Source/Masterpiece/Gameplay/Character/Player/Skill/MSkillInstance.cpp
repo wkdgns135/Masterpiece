@@ -11,6 +11,7 @@ bool UMSkillInstance::InitializeSkillInstance(UMSkillDefinition* InDefinition)
 	bUnlocked = true;
 	CurrentRank = 1;
 	AssignedSlotTag = FGameplayTag();
+	RefreshSkillViewData();
 	return true;
 }
 
@@ -31,70 +32,53 @@ UMSkillDefinitionPassive* UMSkillInstance::GetPassiveDefinition() const
 
 FGameplayTag UMSkillInstance::GetSkillTag() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetSkillTag() : FGameplayTag();
+	return SkillTag;
 }
 
-const TSoftObjectPtr<UTexture2D>& UMSkillInstance::GetIcon() const
+TSoftObjectPtr<UTexture2D> UMSkillInstance::GetIcon() const
 {
-	static const TSoftObjectPtr<UTexture2D> EmptyIcon;
-
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetIcon() : EmptyIcon;
+	return Icon;
 }
 
-const FText& UMSkillInstance::GetDisplayName() const
+FText UMSkillInstance::GetDisplayName() const
 {
-	static const FText EmptyText = FText::GetEmpty();
-
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetDisplayName() : EmptyText;
+	return DisplayName;
 }
 
-const FText& UMSkillInstance::GetDescription() const
+FText UMSkillInstance::GetDescription() const
 {
-	static const FText EmptyText = FText::GetEmpty();
-
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetDescription() : EmptyText;
+	return Description;
 }
 
 TArray<FGameplayTag> UMSkillInstance::GetPrerequisiteSkillTags() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetPrerequisiteSkillTags() : TArray<FGameplayTag>();
+	return ParentSkillTags;
 }
 
-const TMap<FGameplayTag, int32>& UMSkillInstance::GetPrerequisiteSkillRanks() const
+TMap<FGameplayTag, int32> UMSkillInstance::GetPrerequisiteSkillRanks() const
 {
-	static const TMap<FGameplayTag, int32> EmptyPrerequisites;
-
 	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetPrerequisiteSkillRanks() : EmptyPrerequisites;
+	return SkillDefinition ? SkillDefinition->GetPrerequisiteSkillRanks() : TMap<FGameplayTag, int32>();
 }
 
 int32 UMSkillInstance::GetRequiredCharacterLevel() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetRequiredCharacterLevel() : 1;
+	return RequiredCharacterLevel;
 }
 
 int32 UMSkillInstance::GetCostPerRank() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetCostPerRank() : 1;
+	return CostPerRank;
 }
 
 int32 UMSkillInstance::GetMaxRank() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition ? SkillDefinition->GetMaxRank() : 1;
+	return MaxRank;
 }
 
 bool UMSkillInstance::IsPassive() const
 {
-	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
-	return SkillDefinition && SkillDefinition->IsPassiveDefinition();
+	return bPassive;
 }
 
 bool UMSkillInstance::IsUnlocked() const
@@ -104,7 +88,7 @@ bool UMSkillInstance::IsUnlocked() const
 
 bool UMSkillInstance::IsEquipped() const
 {
-	return AssignedSlotTag.IsValid();
+	return bEquipped;
 }
 
 int32 UMSkillInstance::GetCurrentRank() const
@@ -120,19 +104,38 @@ FGameplayTag UMSkillInstance::GetAssignedSlotTag() const
 void UMSkillInstance::SetUnlocked(const bool bInUnlocked)
 {
 	bUnlocked = bInUnlocked;
+	RefreshSkillViewData();
 }
 
 void UMSkillInstance::SetCurrentRank(const int32 InCurrentRank)
 {
 	CurrentRank = FMath::Clamp(InCurrentRank, 0, FMath::Max(1, GetMaxRank()));
+	RefreshSkillViewData();
 }
 
 void UMSkillInstance::SetAssignedSlotTag(const FGameplayTag InAssignedSlotTag)
 {
 	AssignedSlotTag = InAssignedSlotTag;
+	RefreshSkillViewData();
 }
 
 const UMSkillDefinition* UMSkillInstance::GetSkillDefinitionChecked() const
 {
 	return Cast<UMSkillDefinition>(Definition);
+}
+
+void UMSkillInstance::RefreshSkillViewData()
+{
+	const UMSkillDefinition* SkillDefinition = GetSkillDefinitionChecked();
+
+	SkillTag = SkillDefinition ? SkillDefinition->GetSkillTag() : FGameplayTag();
+	Icon = SkillDefinition ? SkillDefinition->GetIcon() : TSoftObjectPtr<UTexture2D>();
+	DisplayName = SkillDefinition ? SkillDefinition->GetDisplayName() : FText::GetEmpty();
+	Description = SkillDefinition ? SkillDefinition->GetDescription() : FText::GetEmpty();
+	RequiredCharacterLevel = SkillDefinition ? SkillDefinition->GetRequiredCharacterLevel() : 1;
+	CostPerRank = SkillDefinition ? SkillDefinition->GetCostPerRank() : 1;
+	MaxRank = SkillDefinition ? SkillDefinition->GetMaxRank() : 1;
+	ParentSkillTags = SkillDefinition ? SkillDefinition->GetPrerequisiteSkillTags() : TArray<FGameplayTag>();
+	bPassive = SkillDefinition && SkillDefinition->IsPassiveDefinition();
+	bEquipped = AssignedSlotTag.IsValid();
 }

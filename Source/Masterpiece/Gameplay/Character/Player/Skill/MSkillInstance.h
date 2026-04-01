@@ -15,18 +15,32 @@ class MASTERPIECE_API UMSkillInstance : public UMDefinitionInstance
 public:
 	bool InitializeSkillInstance(UMSkillDefinition* InDefinition);
 
+	UFUNCTION(BlueprintPure, Category="Skill")
 	UMSkillDefinition* GetSkillDefinition() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
 	UMSkillDefinitionActive* GetActiveDefinition() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
 	UMSkillDefinitionPassive* GetPassiveDefinition() const;
 
 	UFUNCTION(BlueprintPure, Category="Skill")
 	FGameplayTag GetSkillTag() const;
 
-	const TSoftObjectPtr<UTexture2D>& GetIcon() const;
-	const FText& GetDisplayName() const;
-	const FText& GetDescription() const;
+	UFUNCTION(BlueprintPure, Category="Skill")
+	TSoftObjectPtr<UTexture2D> GetIcon() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
+	FText GetDisplayName() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
+	FText GetDescription() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
 	TArray<FGameplayTag> GetPrerequisiteSkillTags() const;
-	const TMap<FGameplayTag, int32>& GetPrerequisiteSkillRanks() const;
+
+	UFUNCTION(BlueprintPure, Category="Skill")
+	TMap<FGameplayTag, int32> GetPrerequisiteSkillRanks() const;
 
 	UFUNCTION(BlueprintPure, Category="Skill")
 	int32 GetRequiredCharacterLevel() const;
@@ -56,16 +70,47 @@ public:
 	void SetCurrentRank(int32 InCurrentRank);
 	void SetAssignedSlotTag(FGameplayTag InAssignedSlotTag);
 
-private:
-	const UMSkillDefinition* GetSkillDefinitionChecked() const;
+public:
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	FGameplayTag SkillTag;
 
-private:
-	UPROPERTY(Transient)
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	TSoftObjectPtr<UTexture2D> Icon;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	FText DisplayName;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	FText Description;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	int32 RequiredCharacterLevel = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	int32 CostPerRank = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	int32 MaxRank = 1;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	TArray<FGameplayTag> ParentSkillTags;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	bool bPassive = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
 	bool bUnlocked = true;
 
-	UPROPERTY(Transient)
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
+	bool bEquipped = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
 	int32 CurrentRank = 1;
 
-	UPROPERTY(Transient)
+	UPROPERTY(BlueprintReadOnly, Category="Skill")
 	FGameplayTag AssignedSlotTag;
+
+private:
+	const UMSkillDefinition* GetSkillDefinitionChecked() const;
+	void RefreshSkillViewData();
 };

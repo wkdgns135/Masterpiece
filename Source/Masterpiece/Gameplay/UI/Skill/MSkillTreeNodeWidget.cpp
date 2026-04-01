@@ -1,21 +1,56 @@
 #include "Gameplay/UI/Skill/MSkillTreeNodeWidget.h"
 
+#include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "Gameplay/Character/Player/Skill/MSkillInstance.h"
-#include "Gameplay/UI/Skill/MSkillTreeNodeItem.h"
+#include "Gameplay/Definition/MDefinitionInstance.h"
 
-void UMSkillTreeNodeWidget::SetNodeItem(UMSkillTreeNodeItem* InNodeItem)
+void UMSkillTreeNodeWidget::NativePreConstruct()
 {
-	NodeItem = InNodeItem;
-	K2_OnNodeItemSet(InNodeItem);
-	K2_OnSkillInstanceSet(GetSkillInstance());
+	Super::NativePreConstruct();
+	RefreshSkillData();
 }
 
-UMSkillTreeNodeItem* UMSkillTreeNodeWidget::GetNodeItem() const
+void UMSkillTreeNodeWidget::SetSkillInstance(UMSkillInstance* InSkillInstance)
 {
-	return NodeItem;
+	SkillInstance = InSkillInstance;
+	RefreshSkillData();
+	K2_OnSkillInstanceSet(SkillInstance);
 }
 
 UMSkillInstance* UMSkillTreeNodeWidget::GetSkillInstance() const
 {
-	return NodeItem ? NodeItem->GetSkillInstance() : nullptr;
+	return SkillInstance;
+}
+
+UImage* UMSkillTreeNodeWidget::GetDragHandleImage_Implementation() const
+{
+	return SkillIcon.Get();
+}
+
+UMDefinitionInstance* UMSkillTreeNodeWidget::GetDraggableDefinitionInstance_Implementation() const
+{
+	return GetSkillInstance();
+}
+
+bool UMSkillTreeNodeWidget::CanDragDefinitionInstance_Implementation() const
+{
+	return GetSkillInstance() != nullptr;
+}
+
+bool UMSkillTreeNodeWidget::CanDropDefinitionInstance_Implementation(UMDefinitionInstance* DefinitionInstance) const
+{
+	return Super::CanDropDefinitionInstance_Implementation(DefinitionInstance);
+}
+
+void UMSkillTreeNodeWidget::RefreshSkillData()
+{
+	if (!SkillInstance)
+	{
+		return;
+	}
+	
+	SkillIcon->SetBrushFromTexture(SkillInstance->GetIcon().LoadSynchronous());
+	SkillName->SetText(SkillInstance->GetDisplayName());
+	SkillRank->SetText(FText::AsNumber(SkillInstance->GetCurrentRank()));
 }

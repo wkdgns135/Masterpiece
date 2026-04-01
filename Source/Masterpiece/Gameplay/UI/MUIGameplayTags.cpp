@@ -6,6 +6,7 @@ namespace MUIGameplayTags
 {
 	UE_DEFINE_GAMEPLAY_TAG(UI_Action_Escape, "UI.Action.Escape");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameHUD, "UI.Widget.GameHUD");
+	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameHUD_MainHUD, "UI.Widget.GameHUD.MainHUD");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameMenu, "UI.Widget.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_Modal, "UI.Widget.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_Notify, "UI.Widget.Notify");
