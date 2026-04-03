@@ -103,18 +103,34 @@ FGameplayTag UMSkillInstance::GetAssignedSlotTag() const
 
 void UMSkillInstance::SetUnlocked(const bool bInUnlocked)
 {
+	if (bUnlocked == bInUnlocked)
+	{
+		return;
+	}
+
 	bUnlocked = bInUnlocked;
 	RefreshSkillViewData();
 }
 
 void UMSkillInstance::SetCurrentRank(const int32 InCurrentRank)
 {
-	CurrentRank = FMath::Clamp(InCurrentRank, 0, FMath::Max(1, GetMaxRank()));
+	const int32 NewRank = FMath::Clamp(InCurrentRank, 0, FMath::Max(1, GetMaxRank()));
+	if (CurrentRank == NewRank)
+	{
+		return;
+	}
+
+	CurrentRank = NewRank;
 	RefreshSkillViewData();
 }
 
 void UMSkillInstance::SetAssignedSlotTag(const FGameplayTag InAssignedSlotTag)
 {
+	if (AssignedSlotTag == InAssignedSlotTag)
+	{
+		return;
+	}
+
 	AssignedSlotTag = InAssignedSlotTag;
 	RefreshSkillViewData();
 }
@@ -138,4 +154,6 @@ void UMSkillInstance::RefreshSkillViewData()
 	ParentSkillTags = SkillDefinition ? SkillDefinition->GetPrerequisiteSkillTags() : TArray<FGameplayTag>();
 	bPassive = SkillDefinition && SkillDefinition->IsPassiveDefinition();
 	bEquipped = AssignedSlotTag.IsValid();
+	
+	BroadcastDefinitionInstanceChanged();
 }

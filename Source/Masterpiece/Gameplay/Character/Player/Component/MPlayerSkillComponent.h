@@ -14,9 +14,8 @@ class UMSkillDefinition;
 class UMSkillDefinitionActive;
 class UMSkillDefinitionCollection;
 
-DECLARE_MULTICAST_DELEGATE(FOnPlayerSkillLoadoutChanged);
 DECLARE_MULTICAST_DELEGATE(FOnPlayerSkillStateChanged);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnPlayerSkillSlotChanged, FGameplayTag, FGameplayTag);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnPlayerSkillSlotChanged, const FGameplayTag&, UMSkillInstance*);
 
 UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MASTERPIECE_API UMPlayerSkillComponent : public UActorComponent
@@ -25,10 +24,6 @@ class MASTERPIECE_API UMPlayerSkillComponent : public UActorComponent
 
 public:
 	UMPlayerSkillComponent();
-
-	FOnPlayerSkillLoadoutChanged OnSkillLoadoutChanged;
-	FOnPlayerSkillStateChanged OnSkillStateChanged;
-	FOnPlayerSkillSlotChanged OnSkillSlotChanged;
 
 	UFUNCTION(BlueprintPure, Category="Skill")
 	bool GetSkillInstances(TArray<UMSkillInstance*>& OutSkillInstances) const;
@@ -39,6 +34,9 @@ public:
 	UFUNCTION(BlueprintPure, Category="Skill")
 	FGameplayTag GetAssignedSkillTag(const FGameplayTag& SlotTag) const;
 
+	UFUNCTION(BlueprintPure, Category="Skill")
+	UMSkillInstance* GetAssignedSkillInstance(const FGameplayTag& SlotTag) const;
+
 	UFUNCTION(BlueprintCallable, Category="Skill")
 	bool EquipSkillToSlot(const FGameplayTag& SkillTag, const FGameplayTag& SlotTag, int32 SkillRank = 1);
 
@@ -48,6 +46,10 @@ public:
 	UFUNCTION(BlueprintPure, Category="Skill")
 	bool IsSkillSlotEquipped(const FGameplayTag& SlotTag) const;
 
+public:
+	FOnPlayerSkillStateChanged OnSkillStateChanged;
+	FOnPlayerSkillSlotChanged OnSkillSlotChanged;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -56,7 +58,8 @@ private:
 	bool EnsureSkillStateInitialized() const;
 	void InitializeSkillState();
 	void HandleSkillDefinitionCollectionLoaded(UMDefinitionCollection* LoadedCollection);
-	void BroadcastSkillStateChanged(const TArray<FGameplayTag>& ChangedSlotTags);
+	void BroadcastSkillStateChanged();
+	void BroadcastSkillSlotChanged(const FGameplayTag& SlotTag);
 	UAbilitySystemComponent* ResolveAbilitySystemComponent() const;
 	UMDefinitionSubsystem* ResolveDefinitionSubsystem() const;
 	const UMSkillDefinitionCollection* ResolveSkillDefinitionCollection() const;

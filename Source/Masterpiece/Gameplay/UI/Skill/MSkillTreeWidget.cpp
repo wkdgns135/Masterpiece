@@ -2,16 +2,20 @@
 
 #include "Gameplay/UI/Skill/MSkillTreeWidget.h"
 
+#include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/GridPanel.h"
 #include "Components/GridSlot.h"
 #include "Components/PanelWidget.h"
 #include "Gameplay/Character/Player/Component/MPlayerSkillComponent.h"
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
+#if WITH_EDITOR
+#include "Gameplay/Character/Player/Skill/MSkillDefinitionCollection.h"
+#endif
 #include "Gameplay/Character/Player/Skill/MSkillInstance.h"
 #include "Gameplay/UI/MUICommonTypes.h"
 #include "Gameplay/UI/MUIGameplayTags.h"
-#include "Gameplay/UI/Skill/MSkillTreeNodeWidget.h"
+#include "Gameplay/UI/Skill/MSkillTreeSlotWidget.h"
 #include "Rendering/DrawElements.h"
 
 namespace
@@ -306,14 +310,18 @@ void UMSkillTreeWidget::InitializeForPlayerCharacter(AMPlayerCharacterBase* InPl
 {
 	UnbindSkillComponentEvents();
 	BoundPlayerCharacter = InPlayerCharacter;
+	BoundSkillComponent = InPlayerCharacter ? InPlayerCharacter->GetSkillComponent() : nullptr;
 	BindSkillComponentEvents();
 	RefreshSkillTreeView();
 }
 
 void UMSkillTreeWidget::RefreshSkillTreeView()
 {
-	if (!SkillGraphCanvas || IsDesignTime())
+	if (!SkillGraphCanvas)
 	{
+#if WITH_EDITOR
+		DesignerPreviewSkillInstances.Reset();
+#endif
 		ClearGraphWidgets();
 		return;
 	}
@@ -345,13 +353,37 @@ void UMSkillTreeWidget::NativeConstruct()
 		BoundPlayerCharacter = Cast<AMPlayerCharacterBase>(GetOwningPlayerPawn());
 	}
 
+	if (!BoundSkillComponent.IsValid())
+	{
+		BoundSkillComponent = BoundPlayerCharacter ? BoundPlayerCharacter->GetSkillComponent() : nullptr;
+	}
+
 	BindSkillComponentEvents();
+	
 	RefreshSkillTreeView();
 }
+
+#if WITH_EDITOR
+void UMSkillTreeWidget::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	if (IsDesignTime())
+	{
+		RefreshSkillTreeView();
+	}
+}
+#endif
 
 void UMSkillTreeWidget::NativeDestruct()
 {
 	UnbindSkillComponentEvents();
+	BoundSkillComponent = nullptr;
+	BoundPlayerCharacter = nullptr;
+
+#if WITH_EDITOR
+	DesignerPreviewSkillInstances.Reset();
+#endif
 	ClearGraphWidgets();
 
 	Super::NativeDestruct();
@@ -362,7 +394,7 @@ int32 UMSkillTreeWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Al
 {
 	int32 MaxLayerId = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 
-	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeNodeWidget>>& Pair : NodeWidgetByTag)
+	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeSlotWidget>>& Pair : NodeWidgetByTag)
 	{
 		if (!Pair.Key.IsValid() || !IsValid(Pair.Value))
 		{
@@ -380,7 +412,7 @@ int32 UMSkillTreeWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Al
 
 		for (const FGameplayTag& ParentTag : ChildSkillInstance->GetPrerequisiteSkillTags())
 		{
-			const TObjectPtr<UMSkillTreeNodeWidget>* ParentWidgetPtr = NodeWidgetByTag.Find(ParentTag);
+			const TObjectPtr<UMSkillTreeSlotWidget>* ParentWidgetPtr = NodeWidgetByTag.Find(ParentTag);
 			if (!ParentWidgetPtr || !IsValid(*ParentWidgetPtr))
 			{
 				continue;
@@ -408,50 +440,20 @@ int32 UMSkillTreeWidget::NativePaint(const FPaintArgs& Args, const FGeometry& Al
 	return MaxLayerId + 1;
 }
 
-void UMSkillTreeWidget::BindSkillComponentEvents()
-{
-	if (!BoundPlayerCharacter)
-	{
-		return;
-	}
-
-	UMPlayerSkillComponent* SkillComponent = BoundPlayerCharacter->GetSkillComponent();
-	if (!SkillComponent)
-	{
-		return;
-	}
-
-	BoundSkillComponent = SkillComponent;
-	SkillComponent->OnSkillStateChanged.RemoveAll(this);
-	SkillComponent->OnSkillStateChanged.AddUObject(this, &ThisClass::HandleSkillStateChanged);
-}
-
-void UMSkillTreeWidget::UnbindSkillComponentEvents()
-{
-	if (!BoundSkillComponent.IsValid())
-	{
-		return;
-	}
-
-	BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
-	BoundSkillComponent.Reset();
-}
-
-void UMSkillTreeWidget::HandleSkillStateChanged()
-{
-	RefreshSkillTreeView();
-}
-
-void UMSkillTreeWidget::BuildSkillGraphModel(TArray<UMSkillInstance*>& OutSkillInstances) const
+void UMSkillTreeWidget::BuildSkillGraphModel(TArray<UMSkillInstance*>& OutSkillInstances)
 {
 	OutSkillInstances.Reset();
 
-	if (!BoundPlayerCharacter)
+#if WITH_EDITOR
+	if (IsDesignTime() && BuildDesignerPreviewSkillGraphModel(OutSkillInstances))
 	{
 		return;
 	}
 
-	const UMPlayerSkillComponent* SkillComponent = BoundPlayerCharacter->GetSkillComponent();
+	DesignerPreviewSkillInstances.Reset();
+#endif
+
+	const UMPlayerSkillComponent* SkillComponent = BoundSkillComponent.Get();
 	if (!SkillComponent || !SkillComponent->GetSkillInstances(OutSkillInstances))
 	{
 		return;
@@ -462,6 +464,47 @@ void UMSkillTreeWidget::BuildSkillGraphModel(TArray<UMSkillInstance*>& OutSkillI
 		return !SkillInstance || !SkillInstance->GetSkillTag().IsValid();
 	});
 }
+
+#if WITH_EDITOR
+bool UMSkillTreeWidget::BuildDesignerPreviewSkillGraphModel(TArray<UMSkillInstance*>& OutSkillInstances)
+{
+	DesignerPreviewSkillInstances.Reset();
+
+	if (!bEnableDesignerPreview || PreviewSkillDefinitionCollection.IsNull())
+	{
+		return false;
+	}
+
+	UMSkillDefinitionCollection* SkillDefinitionCollection = PreviewSkillDefinitionCollection.LoadSynchronous();
+	if (!SkillDefinitionCollection)
+	{
+		return false;
+	}
+
+	const TArray<TObjectPtr<UMSkillDefinition>>& SkillDefinitions = SkillDefinitionCollection->GetSkillDefinitions();
+	DesignerPreviewSkillInstances.Reserve(SkillDefinitions.Num());
+	OutSkillInstances.Reserve(SkillDefinitions.Num());
+
+	for (UMSkillDefinition* SkillDefinition : SkillDefinitions)
+	{
+		if (!SkillDefinition)
+		{
+			continue;
+		}
+
+		UMSkillInstance* PreviewSkillInstance = NewObject<UMSkillInstance>(this);
+		if (!PreviewSkillInstance || !PreviewSkillInstance->InitializeSkillInstance(SkillDefinition))
+		{
+			continue;
+		}
+
+		DesignerPreviewSkillInstances.Add(PreviewSkillInstance);
+		OutSkillInstances.Add(PreviewSkillInstance);
+	}
+
+	return OutSkillInstances.Num() > 0;
+}
+#endif
 
 void UMSkillTreeWidget::LayoutSkillGraphNodes(const TArray<UMSkillInstance*>& SkillInstances, const FVector2D& AvailableSize,
 	TMap<FGameplayTag, int32>& OutLayerByTag, TMap<FGameplayTag, int32>& OutColumnByTag, TMap<FGameplayTag, FVector2D>& OutPositionByTag) const
@@ -729,7 +772,7 @@ void UMSkillTreeWidget::SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& 
 	}
 
 	TArray<FGameplayTag> TagsToRemove;
-	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeNodeWidget>>& Pair : NodeWidgetByTag)
+	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeSlotWidget>>& Pair : NodeWidgetByTag)
 	{
 		if (!Pair.Key.IsValid() || !ValidNodeTags.Contains(Pair.Key) || !IsValid(Pair.Value))
 		{
@@ -739,7 +782,7 @@ void UMSkillTreeWidget::SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& 
 
 	for (const FGameplayTag& TagToRemove : TagsToRemove)
 	{
-		if (UMSkillTreeNodeWidget* ExistingWidget = NodeWidgetByTag.FindRef(TagToRemove))
+		if (UMSkillTreeSlotWidget* ExistingWidget = NodeWidgetByTag.FindRef(TagToRemove))
 		{
 			ExistingWidget->RemoveFromParent();
 		}
@@ -760,10 +803,25 @@ void UMSkillTreeWidget::SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& 
 			continue;
 		}
 
-		UMSkillTreeNodeWidget* NodeWidget = NodeWidgetByTag.FindRef(SkillTag);
+		UMSkillTreeSlotWidget* NodeWidget = NodeWidgetByTag.FindRef(SkillTag);
 		if (!IsValid(NodeWidget))
 		{
-			NodeWidget = CreateWidget<UMSkillTreeNodeWidget>(GetOwningPlayer(), SkillTreeNodeWidgetClass);
+			if (WidgetTree)
+			{
+				NodeWidget = WidgetTree->ConstructWidget<UMSkillTreeSlotWidget>(SkillTreeNodeWidgetClass);
+			}
+
+			if (!NodeWidget)
+			{
+				if (APlayerController* OwningPlayer = GetOwningPlayer())
+				{
+					NodeWidget = CreateWidget<UMSkillTreeSlotWidget>(OwningPlayer, SkillTreeNodeWidgetClass);
+				}
+				else if (UWorld* World = GetWorld())
+				{
+					NodeWidget = CreateWidget<UMSkillTreeSlotWidget>(World, SkillTreeNodeWidgetClass);
+				}
+			}
 		}
 
 		if (!NodeWidget)
@@ -779,7 +837,7 @@ void UMSkillTreeWidget::SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& 
 
 		if (UMSkillInstance* ResolvedSkillInstance = SkillInstanceByTag.FindRef(SkillTag))
 		{
-			NodeWidget->SetSkillInstance(ResolvedSkillInstance);
+			NodeWidget->InitializeWidget(ResolvedSkillInstance);
 		}
 
 		const int32* Row = LayerByTag.Find(SkillTag);
@@ -792,7 +850,7 @@ void UMSkillTreeWidget::SynchronizeGraphWidgets(const TArray<UMSkillInstance*>& 
 	}
 }
 
-void UMSkillTreeWidget::UpdateNodeWidgetLayout(UMSkillTreeNodeWidget* NodeWidget, const int32 Row, const int32 Column, const FVector2D& Position) const
+void UMSkillTreeWidget::UpdateNodeWidgetLayout(UMSkillTreeSlotWidget* NodeWidget, const int32 Row, const int32 Column, const FVector2D& Position) const
 {
 	if (!NodeWidget)
 	{
@@ -819,7 +877,7 @@ void UMSkillTreeWidget::UpdateNodeWidgetLayout(UMSkillTreeNodeWidget* NodeWidget
 
 void UMSkillTreeWidget::ClearGraphWidgets()
 {
-	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeNodeWidget>>& Pair : NodeWidgetByTag)
+	for (const TPair<FGameplayTag, TObjectPtr<UMSkillTreeSlotWidget>>& Pair : NodeWidgetByTag)
 	{
 		if (IsValid(Pair.Value))
 		{
@@ -853,4 +911,30 @@ FVector2D UMSkillTreeWidget::ResolveGraphCanvasSize() const
 bool UMSkillTreeWidget::HasMeaningfulCanvasSize(const FVector2D& InSize) const
 {
 	return InSize.X > KINDA_SMALL_NUMBER && InSize.Y > KINDA_SMALL_NUMBER;
+}
+
+void UMSkillTreeWidget::BindSkillComponentEvents()
+{
+	if (!BoundSkillComponent.IsValid())
+	{
+		return;
+	}
+
+	BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
+	BoundSkillComponent->OnSkillStateChanged.AddUObject(this, &ThisClass::HandleSkillStateChanged);
+}
+
+void UMSkillTreeWidget::UnbindSkillComponentEvents()
+{
+	if (!BoundSkillComponent.IsValid())
+	{
+		return;
+	}
+
+	BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
+}
+
+void UMSkillTreeWidget::HandleSkillStateChanged()
+{
+	RefreshSkillTreeView();
 }

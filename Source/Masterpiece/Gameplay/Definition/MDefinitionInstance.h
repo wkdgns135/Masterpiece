@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "MDefinitionInstance.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnDefinitionInstanceChanged);
+
 UCLASS(Abstract, BlueprintType, EditInlineNew, DefaultToInstanced)
 class MASTERPIECE_API UMDefinitionInstance : public UObject, public IGameplayTagAssetInterface
 {
@@ -20,8 +22,12 @@ public:
 
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override;
 
+public:
+	FOnDefinitionInstanceChanged OnDefinitionInstanceChanged;
+	
 protected:
 	void InitializeDefinition(UMDefinitionObject* InDefinition);
+	void BroadcastDefinitionInstanceChanged();
 
 protected:
 	UPROPERTY(Transient)

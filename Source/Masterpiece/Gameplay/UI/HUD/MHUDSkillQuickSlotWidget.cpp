@@ -8,8 +8,15 @@
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
 #include "Gameplay/Character/Player/Skill/MSkillInstance.h"
 #include "Gameplay/Definition/MDefinitionInstance.h"
+#include "Gameplay/UI/Skill/MSkillTooltipWidget.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogMHUDSkillQuickSlotWidget, Log, All);
+
+UMHUDSkillQuickSlotWidget::UMHUDSkillQuickSlotWidget(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	DefinitionToolTipWidgetClass = UMSkillTooltipWidget::StaticClass();
+}
 
 UMPlayerSkillComponent* UMHUDSkillQuickSlotWidget::GetSkillComponent() const
 {
@@ -38,16 +45,10 @@ bool UMHUDSkillQuickSlotWidget::HasAssignedSkill() const
 	return GetAssignedSkillTag().IsValid();
 }
 
-void UMHUDSkillQuickSlotWidget::NativeConstruct()
-{
-	Super::NativeConstruct();
-}
-
 void UMHUDSkillQuickSlotWidget::NativeDestruct()
 {
 	UnbindSkillComponent();
 	BoundSkillComponent = nullptr;
-
 	Super::NativeDestruct();
 }
 
@@ -73,36 +74,19 @@ void UMHUDSkillQuickSlotWidget::HandleOwningPlayerCharacterChanged()
 
 	UnbindSkillComponent();
 	BoundSkillComponent = nullptr;
-
+	
 	if (const AMPlayerCharacterBase* PlayerCharacter = GetBoundPlayerCharacter())
 	{
 		BoundSkillComponent = PlayerCharacter->GetSkillComponent();
 	}
 
 	BindSkillComponent();
-}
-
-UMDefinitionInstance* UMHUDSkillQuickSlotWidget::ResolveQuickSlotDefinitionInstance() const
-{
-	const UMPlayerSkillComponent* SkillComponent = GetSkillComponent();
-	const FGameplayTag SkillSlotTag = GetResolvedSkillSlotTag();
-	if (!SkillComponent || !SkillSlotTag.IsValid())
-	{
-		return nullptr;
-	}
-
-	const FGameplayTag SkillTag = SkillComponent->GetAssignedSkillTag(SkillSlotTag);
-	return SkillTag.IsValid() ? SkillComponent->GetSkillInstance(SkillTag) : nullptr;
+	RefreshAssignedSkillInstance();
 }
 
 UImage* UMHUDSkillQuickSlotWidget::GetDragHandleImage_Implementation() const
 {
 	return SkillIcon.Get();
-}
-
-UMDefinitionInstance* UMHUDSkillQuickSlotWidget::GetDraggableDefinitionInstance_Implementation() const
-{
-	return GetDefinitionInstance();
 }
 
 bool UMHUDSkillQuickSlotWidget::CanDragDefinitionInstance_Implementation() const
@@ -136,28 +120,8 @@ bool UMHUDSkillQuickSlotWidget::DropDefinitionInstance_Implementation(UMDefiniti
 		*SkillInstance->GetSkillTag().ToString(),
 		SkillInstance->GetCurrentRank(),
 		bEquipped ? TEXT("true") : TEXT("false"));
+
 	return bEquipped;
-}
-
-void UMHUDSkillQuickSlotWidget::BindSkillComponent()
-{
-	if (BoundSkillComponent)
-	{
-		BoundSkillComponent->OnSkillStateChanged.AddUObject(this, &ThisClass::HandleSkillStateChanged);
-	}
-}
-
-void UMHUDSkillQuickSlotWidget::UnbindSkillComponent()
-{
-	if (BoundSkillComponent)
-	{
-		BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
-	}
-}
-
-void UMHUDSkillQuickSlotWidget::HandleSkillStateChanged()
-{
-	RefreshQuickSlot();
 }
 
 FGameplayTag UMHUDSkillQuickSlotWidget::ResolveDefaultSkillSlotTagFromIndex() const
@@ -180,4 +144,55 @@ FGameplayTag UMHUDSkillQuickSlotWidget::ResolveDefaultSkillSlotTagFromIndex() co
 	default:
 		return FGameplayTag();
 	}
+}
+
+UMSkillInstance* UMHUDSkillQuickSlotWidget::ResolveAssignedSkillInstance() const
+{
+	const UMPlayerSkillComponent* SkillComponent = GetSkillComponent();
+	const FGameplayTag ResolvedSlotTag = GetResolvedSkillSlotTag();
+	return SkillComponent && ResolvedSlotTag.IsValid() ? SkillComponent->GetAssignedSkillInstance(ResolvedSlotTag) : nullptr;
+}
+
+void UMHUDSkillQuickSlotWidget::RefreshAssignedSkillInstance()
+{
+	InitializeWidget(ResolveAssignedSkillInstance());
+}
+
+void UMHUDSkillQuickSlotWidget::BindSkillComponent()
+{
+	if (!BoundSkillComponent)
+	{
+		return;
+	}
+
+	BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
+	BoundSkillComponent->OnSkillSlotChanged.RemoveAll(this);
+	BoundSkillComponent->OnSkillStateChanged.AddUObject(this, &ThisClass::HandleSkillStateChanged);
+	BoundSkillComponent->OnSkillSlotChanged.AddUObject(this, &ThisClass::HandleSkillSlotChanged);
+}
+
+void UMHUDSkillQuickSlotWidget::UnbindSkillComponent()
+{
+	if (!BoundSkillComponent)
+	{
+		return;
+	}
+
+	BoundSkillComponent->OnSkillStateChanged.RemoveAll(this);
+	BoundSkillComponent->OnSkillSlotChanged.RemoveAll(this);
+}
+
+void UMHUDSkillQuickSlotWidget::HandleSkillStateChanged()
+{
+	RefreshAssignedSkillInstance();
+}
+
+void UMHUDSkillQuickSlotWidget::HandleSkillSlotChanged(const FGameplayTag& InSlotTag, UMSkillInstance* InSkillInstance)
+{
+	if (InSlotTag != GetResolvedSkillSlotTag())
+	{
+		return;
+	}
+
+	InitializeWidget(InSkillInstance);
 }

@@ -21,6 +21,8 @@ class MASTERPIECE_API UMHUDSkillQuickSlotWidget : public UMHUDQuickSlotWidgetBas
 	GENERATED_BODY()
 
 public:
+	UMHUDSkillQuickSlotWidget(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
 	UFUNCTION(BlueprintPure, Category="HUD|QuickSlot|Skill")
 	UMPlayerSkillComponent* GetSkillComponent() const;
 
@@ -37,14 +39,11 @@ public:
 	bool HasAssignedSkill() const;
 
 protected:
-	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
 	virtual void HandleOwningPlayerCharacterChanged() override;
-	virtual UMDefinitionInstance* ResolveQuickSlotDefinitionInstance() const override;
 
 	virtual UImage* GetDragHandleImage_Implementation() const override;
-	virtual UMDefinitionInstance* GetDraggableDefinitionInstance_Implementation() const override;
 	virtual bool CanDragDefinitionInstance_Implementation() const override;
 	virtual bool CanDropDefinitionInstance_Implementation(UMDefinitionInstance* DefinitionInstance) const override;
 	virtual bool DropDefinitionInstance_Implementation(UMDefinitionInstance* DefinitionInstance) override;
@@ -57,10 +56,13 @@ protected:
 	TObjectPtr<UImage> SkillIcon;
 
 private:
+	FGameplayTag ResolveDefaultSkillSlotTagFromIndex() const;
+	UMSkillInstance* ResolveAssignedSkillInstance() const;
+	void RefreshAssignedSkillInstance();
 	void BindSkillComponent();
 	void UnbindSkillComponent();
 	void HandleSkillStateChanged();
-	FGameplayTag ResolveDefaultSkillSlotTagFromIndex() const;
+	void HandleSkillSlotChanged(const FGameplayTag& InSlotTag, UMSkillInstance* InSkillInstance);
 
 private:
 	UPROPERTY(Transient)

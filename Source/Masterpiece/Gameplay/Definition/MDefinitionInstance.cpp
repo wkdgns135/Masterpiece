@@ -22,3 +22,8 @@ void UMDefinitionInstance::InitializeDefinition(UMDefinitionObject* InDefinition
 {
 	Definition = InDefinition;
 }
+
+void UMDefinitionInstance::BroadcastDefinitionInstanceChanged()
+{
+	OnDefinitionInstanceChanged.Broadcast();
+}

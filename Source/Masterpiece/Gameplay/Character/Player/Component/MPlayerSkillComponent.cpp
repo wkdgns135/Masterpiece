@@ -110,6 +110,12 @@ FGameplayTag UMPlayerSkillComponent::GetAssignedSkillTag(const FGameplayTag& Slo
 	return FGameplayTag();
 }
 
+UMSkillInstance* UMPlayerSkillComponent::GetAssignedSkillInstance(const FGameplayTag& SlotTag) const
+{
+	const FGameplayTag AssignedSkillTag = GetAssignedSkillTag(SlotTag);
+	return AssignedSkillTag.IsValid() ? GetSkillInstance(AssignedSkillTag) : nullptr;
+}
+
 bool UMPlayerSkillComponent::EquipSkillToSlot(const FGameplayTag& SkillTag, const FGameplayTag& SlotTag, const int32 SkillRank)
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority() || !SkillTag.IsValid() || !EnsureSkillStateInitialized())
@@ -133,7 +139,6 @@ bool UMPlayerSkillComponent::EquipSkillToSlot(const FGameplayTag& SkillTag, cons
 
 	SkillInstance->SetCurrentRank(FMath::Max(SkillInstance->GetCurrentRank(), SkillRank));
 
-	TArray<FGameplayTag> ChangedSlotTags;
 	const FGameplayTag PreviousAssignedSlotTag = SkillInstance->GetAssignedSlotTag();
 	if (PreviousAssignedSlotTag.IsValid() && PreviousAssignedSlotTag != ActualSlotTag)
 	{
@@ -145,39 +150,46 @@ bool UMPlayerSkillComponent::EquipSkillToSlot(const FGameplayTag& SkillTag, cons
 				PreviousInstance->SetAssignedSlotTag(FGameplayTag());
 			}
 
-			ChangedSlotTags.AddUnique(PreviousAssignedSlotTag);
+			BroadcastSkillSlotChanged(PreviousAssignedSlotTag);
 		}
 	}
 
 	FGameplayTag ReplacedSkillTag;
-	if (ClearEquippedSlotInternal(AbilitySystemComponent, ActualSlotTag, &ReplacedSkillTag))
+	const bool bClearedTargetSlot = ClearEquippedSlotInternal(AbilitySystemComponent, ActualSlotTag, &ReplacedSkillTag);
+	if (bClearedTargetSlot)
 	{
 		if (UMSkillInstance* ReplacedInstance = GetSkillInstance(ReplacedSkillTag))
 		{
 			ReplacedInstance->SetAssignedSlotTag(FGameplayTag());
 		}
-
-		ChangedSlotTags.AddUnique(ActualSlotTag);
 	}
 
 	FGameplayAbilitySpec AbilitySpec;
 	if (!BuildAbilitySpecFromSkillInstance(*SkillInstance, ActualSlotTag, AbilitySpec))
 	{
+		if (bClearedTargetSlot)
+		{
+			BroadcastSkillSlotChanged(ActualSlotTag);
+		}
+
 		return false;
 	}
 
 	const FGameplayAbilitySpecHandle NewHandle = AbilitySystemComponent->GiveAbility(AbilitySpec);
 	if (!NewHandle.IsValid())
 	{
+		if (bClearedTargetSlot)
+		{
+			BroadcastSkillSlotChanged(ActualSlotTag);
+		}
+
 		return false;
 	}
 
 	EquippedSkillHandlesBySlot.FindOrAdd(ActualSlotTag) = NewHandle;
 	EquippedSkillTagsBySlot.FindOrAdd(ActualSlotTag) = SkillTag;
 	SkillInstance->SetAssignedSlotTag(ActualSlotTag);
-
-	ChangedSlotTags.AddUnique(ActualSlotTag);
-	BroadcastSkillStateChanged(ChangedSlotTags);
+	BroadcastSkillSlotChanged(ActualSlotTag);
 	return true;
 }
 
@@ -206,9 +218,7 @@ bool UMPlayerSkillComponent::UnequipSkillSlot(const FGameplayTag& SlotTag)
 		SkillInstance->SetAssignedSlotTag(FGameplayTag());
 	}
 
-	TArray<FGameplayTag> ChangedSlotTags;
-	ChangedSlotTags.Add(SlotTag);
-	BroadcastSkillStateChanged(ChangedSlotTags);
+	BroadcastSkillSlotChanged(SlotTag);
 	return true;
 }
 
@@ -225,6 +235,8 @@ bool UMPlayerSkillComponent::IsSkillSlotEquipped(const FGameplayTag& SlotTag) co
 
 void UMPlayerSkillComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	OnSkillStateChanged.Clear();
+	OnSkillSlotChanged.Clear();
 	SkillInstances.Empty();
 	EquippedSkillTagsBySlot.Empty();
 	EquippedSkillHandlesBySlot.Empty();
@@ -291,6 +303,7 @@ void UMPlayerSkillComponent::HandleSkillDefinitionCollectionLoaded(UMDefinitionC
 
 	if (!LoadedSkillDefinitionCollection)
 	{
+		BroadcastSkillStateChanged();
 		return;
 	}
 
@@ -319,18 +332,22 @@ void UMPlayerSkillComponent::HandleSkillDefinitionCollectionLoaded(UMDefinitionC
 		SkillInstances.Add(SkillTag, SkillInstance);
 	}
 
-	BroadcastSkillStateChanged({});
+	BroadcastSkillStateChanged();
 }
 
-void UMPlayerSkillComponent::BroadcastSkillStateChanged(const TArray<FGameplayTag>& ChangedSlotTags)
+void UMPlayerSkillComponent::BroadcastSkillStateChanged()
 {
 	OnSkillStateChanged.Broadcast();
-	OnSkillLoadoutChanged.Broadcast();
+}
 
-	for (const FGameplayTag& SlotTag : ChangedSlotTags)
+void UMPlayerSkillComponent::BroadcastSkillSlotChanged(const FGameplayTag& SlotTag)
+{
+	if (!SlotTag.IsValid())
 	{
-		OnSkillSlotChanged.Broadcast(SlotTag, GetAssignedSkillTag(SlotTag));
+		return;
 	}
+
+	OnSkillSlotChanged.Broadcast(SlotTag, GetAssignedSkillInstance(SlotTag));
 }
 
 UAbilitySystemComponent* UMPlayerSkillComponent::ResolveAbilitySystemComponent() const
