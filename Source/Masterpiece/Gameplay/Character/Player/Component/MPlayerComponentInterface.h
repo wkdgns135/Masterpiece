@@ -9,6 +9,7 @@
 class AMPlayerCharacterBase;
 class AMGameplayPlayerController;
 class AMGameplayPlayerState;
+class UMPlayerInventoryComponent;
 class UMPlayerInputComponent;
 UINTERFACE(MinimalAPI, NotBlueprintable)
 class UMPlayerComponentInterface : public UInterface
@@ -27,5 +28,6 @@ public:
 	AMPlayerCharacterBase* GetMPlayerCharacter() const;
 	AMGameplayPlayerController* GetMGameplayPlayerController() const;
 	AMGameplayPlayerState* GetMGameplayPlayerState() const;
+	UMPlayerInventoryComponent* GetMPlayerInventoryComponent() const;
 	UMPlayerInputComponent* GetMPlayerInputComponent() const;
 };

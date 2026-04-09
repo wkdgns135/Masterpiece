@@ -87,6 +87,26 @@ bool UMItemInstance::IsMiscItem() const
 	return ItemDefinition && ItemDefinition->IsMiscDefinition();
 }
 
+bool UMItemInstance::IsEquipped() const
+{
+	return bEquipped;
+}
+
+FGameplayTag UMItemInstance::GetEquippedSlotTag() const
+{
+	return EquippedSlotTag;
+}
+
+bool UMItemInstance::IsAssignedToQuickSlot() const
+{
+	return bAssignedToQuickSlot;
+}
+
+FGameplayTag UMItemInstance::GetAssignedQuickSlotTag() const
+{
+	return AssignedQuickSlotTag;
+}
+
 bool UMItemInstance::IsStackable() const
 {
 	return bStackable;
@@ -110,6 +130,28 @@ int32 UMItemInstance::GetSellPrice() const
 int32 UMItemInstance::GetQuantity() const
 {
 	return Quantity;
+}
+
+void UMItemInstance::SetEquippedSlotTag(const FGameplayTag InEquippedSlotTag)
+{
+	if (EquippedSlotTag == InEquippedSlotTag)
+	{
+		return;
+	}
+
+	EquippedSlotTag = InEquippedSlotTag;
+	RefreshItemViewData();
+}
+
+void UMItemInstance::SetAssignedQuickSlotTag(const FGameplayTag InAssignedQuickSlotTag)
+{
+	if (AssignedQuickSlotTag == InAssignedQuickSlotTag)
+	{
+		return;
+	}
+
+	AssignedQuickSlotTag = InAssignedQuickSlotTag;
+	RefreshItemViewData();
 }
 
 void UMItemInstance::SetQuantity(const int32 InQuantity)
@@ -137,6 +179,8 @@ void UMItemInstance::RefreshItemViewData()
 	Icon = ItemDefinition ? ItemDefinition->GetIcon() : TSoftObjectPtr<UTexture2D>();
 	DisplayName = ItemDefinition ? ItemDefinition->GetDisplayName() : FText::GetEmpty();
 	Description = ItemDefinition ? ItemDefinition->GetDescription() : FText::GetEmpty();
+	bEquipped = EquippedSlotTag.IsValid();
+	bAssignedToQuickSlot = AssignedQuickSlotTag.IsValid();
 	bStackable = ItemDefinition && ItemDefinition->IsStackable();
 	MaxStackCount = ItemDefinition ? ItemDefinition->GetMaxStackCount() : 1;
 	BuyPrice = ItemDefinition ? ItemDefinition->GetBuyPrice() : 0;

@@ -10,6 +10,7 @@ namespace MUIGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameMenu, "UI.Widget.GameMenu");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_Modal, "UI.Widget.Modal");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_Notify, "UI.Widget.Notify");
+	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameMenu_Inventory, "UI.Widget.GameMenu.Inventory");
 	UE_DEFINE_GAMEPLAY_TAG(UI_Widget_GameMenu_SkillTree, "UI.Widget.GameMenu.SkillTree");
 
 	bool TryResolveWidgetLayerTag(const FGameplayTag& WidgetTag, FGameplayTag& OutLayerTag)

@@ -24,6 +24,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="UI")
 	bool ToggleSkillTreeMenu();
 	
+	UFUNCTION(BlueprintCallable, Category="UI")
+	bool ToggleInventoryMenu();
+	
 protected:
 	virtual void BeginPlay() override;
 

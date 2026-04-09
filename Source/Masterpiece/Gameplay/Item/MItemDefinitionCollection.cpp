@@ -2,6 +2,7 @@
 
 #include "Gameplay/Definition/MDefinitionObject.h"
 #include "Gameplay/Item/MItemDefinition.h"
+#include "Gameplay/Item/MItemGameplayTags.h"
 
 const TArray<TObjectPtr<UMItemDefinition>>& UMItemDefinitionCollection::GetItemDefinitions() const
 {
@@ -92,6 +93,12 @@ EDataValidationResult UMItemDefinitionCollection::IsDataValid(FDataValidationCon
 
 		if (const UMItemDefinitionEquipment* EquipmentDefinition = Cast<UMItemDefinitionEquipment>(ItemDefinition))
 		{
+			if (!MItemGameplayTags::IsEquipmentTag(ItemTag))
+			{
+				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: equipment item DefinitionTag must match Item.Equipment.*"), *ItemTag.ToString())));
+				bHasError = true;
+			}
+
 			if (!EquipmentDefinition->GetEquipSlotTag().IsValid())
 			{
 				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: equipment item requires a valid EquipSlotTag."), *ItemTag.ToString())));
@@ -101,6 +108,12 @@ EDataValidationResult UMItemDefinitionCollection::IsDataValid(FDataValidationCon
 
 		if (const UMItemDefinitionConsumable* ConsumableDefinition = Cast<UMItemDefinitionConsumable>(ItemDefinition))
 		{
+			if (!MItemGameplayTags::IsConsumableTag(ItemTag))
+			{
+				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: consumable item DefinitionTag must match Item.Consumable.*"), *ItemTag.ToString())));
+				bHasError = true;
+			}
+
 			if (ConsumableDefinition->GetConsumeCountPerUse() <= 0)
 			{
 				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: consumable item requires ConsumeCountPerUse to be greater than 0."), *ItemTag.ToString())));
@@ -112,6 +125,18 @@ EDataValidationResult UMItemDefinitionCollection::IsDataValid(FDataValidationCon
 				Context.AddError(FText::FromString(FString::Printf(TEXT("%s: consumable item requires CooldownSeconds to be non-negative."), *ItemTag.ToString())));
 				bHasError = true;
 			}
+		}
+
+		if (Cast<UMItemDefinitionQuest>(ItemDefinition) && !MItemGameplayTags::IsQuestTag(ItemTag))
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("%s: quest item DefinitionTag must match Item.Quest.*"), *ItemTag.ToString())));
+			bHasError = true;
+		}
+
+		if (Cast<UMItemDefinitionMisc>(ItemDefinition) && !MItemGameplayTags::IsMiscTag(ItemTag))
+		{
+			Context.AddError(FText::FromString(FString::Printf(TEXT("%s: misc item DefinitionTag must match Item.Misc.*"), *ItemTag.ToString())));
+			bHasError = true;
 		}
 
 		ItemDefinitionByTag.Add(ItemTag, ItemDefinition);

@@ -58,6 +58,18 @@ public:
 	bool IsMiscItem() const;
 
 	UFUNCTION(BlueprintPure, Category="Item")
+	bool IsEquipped() const;
+
+	UFUNCTION(BlueprintPure, Category="Item")
+	FGameplayTag GetEquippedSlotTag() const;
+
+	UFUNCTION(BlueprintPure, Category="Item")
+	bool IsAssignedToQuickSlot() const;
+
+	UFUNCTION(BlueprintPure, Category="Item")
+	FGameplayTag GetAssignedQuickSlotTag() const;
+
+	UFUNCTION(BlueprintPure, Category="Item")
 	bool IsStackable() const;
 
 	UFUNCTION(BlueprintPure, Category="Item")
@@ -72,6 +84,8 @@ public:
 	UFUNCTION(BlueprintPure, Category="Item")
 	int32 GetQuantity() const;
 
+	void SetEquippedSlotTag(FGameplayTag InEquippedSlotTag);
+	void SetAssignedQuickSlotTag(FGameplayTag InAssignedQuickSlotTag);
 	void SetQuantity(int32 InQuantity);
 
 public:
@@ -86,6 +100,18 @@ public:
 
 	UPROPERTY(BlueprintReadOnly, Category="Item")
 	FText Description;
+
+	UPROPERTY(BlueprintReadOnly, Category="Item")
+	bool bEquipped = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Item")
+	FGameplayTag EquippedSlotTag;
+
+	UPROPERTY(BlueprintReadOnly, Category="Item")
+	bool bAssignedToQuickSlot = false;
+
+	UPROPERTY(BlueprintReadOnly, Category="Item")
+	FGameplayTag AssignedQuickSlotTag;
 
 	UPROPERTY(BlueprintReadOnly, Category="Item")
 	bool bStackable = false;

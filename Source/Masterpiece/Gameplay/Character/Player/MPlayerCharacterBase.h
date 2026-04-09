@@ -13,6 +13,7 @@ class UAbilitySystemComponent;
 class UMCombatAttributeSet;
 class UMPlayerCameraComponent;
 class UMPlayerComponent;
+class UMPlayerInventoryComponent;
 class UMPlayerSkillComponent;
 class UMPlayerAttributeSet;
 class UMPlayerCombatComponent;
@@ -50,6 +51,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<UMPlayerSkillComponent> SkillComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<UMPlayerInventoryComponent> InventoryComponent;
 	
 	/** 공용 컴포넌트 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
@@ -103,6 +107,11 @@ public:
 	{
 		check(SkillComponent);
 		return SkillComponent;
+	}
+	FORCEINLINE UMPlayerInventoryComponent* GetInventoryComponent() const
+	{
+		check(InventoryComponent);
+		return InventoryComponent;
 	}
 	UMPlayerInputComponent* GetPlayerInputComponent() const;
 	UMPlayerMovementComponent* GetPlayerMovementComponent() const;

@@ -39,3 +39,15 @@ bool AMGameplayPlayerController::ToggleSkillTreeMenu()
 
 	return UIManager->ToggleWidgetByTag(MUIGameplayTags::UI_Widget_GameMenu_SkillTree);
 }
+
+bool AMGameplayPlayerController::ToggleInventoryMenu()
+{
+	ULocalPlayer* LocalPlayer = GetLocalPlayer();
+	UMUIManagerSubsystem* UIManager = LocalPlayer ? LocalPlayer->GetSubsystem<UMUIManagerSubsystem>() : nullptr;
+	if (!UIManager)
+	{
+		return false;
+	}
+
+	return UIManager->ToggleWidgetByTag(MUIGameplayTags::UI_Widget_GameMenu_Inventory);
+}

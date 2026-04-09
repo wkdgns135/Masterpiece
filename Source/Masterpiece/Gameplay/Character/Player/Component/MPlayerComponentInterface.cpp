@@ -4,6 +4,7 @@
 #include "MPlayerComponentInterface.h"
 
 #include "Gameplay/Character/Player/MPlayerCharacterBase.h"
+#include "Gameplay/Character/Player/Component/MPlayerInventoryComponent.h"
 #include "Gameplay/Character/Player/Input/MPlayerInputComponent.h"
 #include "Gameplay/PlayerController/MGameplayPlayerController.h"
 #include "Gameplay/PlayerState/MGameplayPlayerState.h"
@@ -27,6 +28,12 @@ AMGameplayPlayerState* IMPlayerComponentInterface::GetMGameplayPlayerState() con
 {
 	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
 	return PlayerCharacter ? PlayerCharacter->GetPlayerState<AMGameplayPlayerState>() : nullptr;
+}
+
+UMPlayerInventoryComponent* IMPlayerComponentInterface::GetMPlayerInventoryComponent() const
+{
+	const AMPlayerCharacterBase* PlayerCharacter = GetMPlayerCharacter();
+	return PlayerCharacter ? PlayerCharacter->GetInventoryComponent() : nullptr;
 }
 
 UMPlayerInputComponent* IMPlayerComponentInterface::GetMPlayerInputComponent() const
