@@ -4,6 +4,7 @@
 #include "MGameplayPlayerController.h"
 
 #include "Engine/LocalPlayer.h"
+#include "Gameplay/Test/Cheat/MGameplayCheatManager.h"
 #include "Gameplay/UI/MUIManagerSubsystem.h"
 #include "Gameplay/UI/MUIGameplayTags.h"
 
@@ -12,6 +13,7 @@ AMGameplayPlayerController::AMGameplayPlayerController()
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
 	bEnableMouseOverEvents = true;
+	CheatClass = UMGameplayCheatManager::StaticClass();
 }
 
 void AMGameplayPlayerController::BeginPlay()
